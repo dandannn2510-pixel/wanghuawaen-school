@@ -3,7 +3,8 @@ import { dbService } from '../services/db';
 import { 
   Newspaper, Settings, FileText, Plus, Edit, Trash2, LayoutDashboard, 
   Save, AlertTriangle, Eye, RefreshCw, Sparkles, LogOut, CheckCircle, MailOpen,
-  Pin, GraduationCap, Users, ArrowUp, ArrowDown, Download, Image as ImageIcon, Link
+  Pin, GraduationCap, Users, ArrowUp, ArrowDown, Download, Image as ImageIcon, Link,
+  Shield
 } from 'lucide-react';
 import Modal from '../components/Modal';
 
