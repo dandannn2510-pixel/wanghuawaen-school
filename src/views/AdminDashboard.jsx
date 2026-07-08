@@ -470,8 +470,17 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
   const handleSettingsSubmit = (e) => {
     e.preventDefault();
     try {
-      const updated = dbService.updateSchoolInfo(settingsFormData);
+      const cleanedData = {
+        ...settingsFormData,
+        stats: {
+          ...settingsFormData.stats,
+          teachers: parseInt(settingsFormData.stats?.teachers) || 0,
+          students: parseInt(settingsFormData.stats?.students) || 0
+        }
+      };
+      const updated = dbService.updateSchoolInfo(cleanedData);
       setSchoolInfo(updated);
+      setSettingsFormData(updated);
       showAlert('บันทึกการตั้งค่าเว็บไซต์สำเร็จ ข้อมูลสถิติและวิสัยทัศน์อัปเดตแล้ว', 'success');
     } catch (err) {
       console.error(err);
@@ -1358,10 +1367,10 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
                       type="number" 
                       className="form-input" 
                       required
-                      value={settingsFormData.stats ? settingsFormData.stats.teachers : 5}
+                      value={settingsFormData.stats ? settingsFormData.stats.teachers : ''}
                       onChange={(e) => setSettingsFormData({
                         ...settingsFormData, 
-                        stats: { ...settingsFormData.stats, teachers: parseInt(e.target.value) || 0 }
+                        stats: { ...settingsFormData.stats, teachers: e.target.value }
                       })}
                     />
                   </div>
@@ -1371,10 +1380,10 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
                       type="number" 
                       className="form-input" 
                       required
-                      value={settingsFormData.stats ? settingsFormData.stats.students : 65}
+                      value={settingsFormData.stats ? settingsFormData.stats.students : ''}
                       onChange={(e) => setSettingsFormData({
                         ...settingsFormData, 
-                        stats: { ...settingsFormData.stats, students: parseInt(e.target.value) || 0 }
+                        stats: { ...settingsFormData.stats, students: e.target.value }
                       })}
                     />
                   </div>
