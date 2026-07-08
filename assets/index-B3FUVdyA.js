@@ -2240,10 +2240,10 @@ Error generating stack: `+e.message+`
 
         .lightbox-close-btn {
           position: absolute;
-          top: 24px;
-          right: 24px;
-          background: rgba(255, 255, 255, 0.1);
-          border: none;
+          top: max(24px, env(safe-area-inset-top));
+          right: max(24px, env(safe-area-inset-right));
+          background: rgba(0, 0, 0, 0.6); /* Darker overlay for better contrast */
+          border: 1px solid rgba(255, 255, 255, 0.2);
           color: white;
           font-size: 2rem;
           width: 48px;
@@ -2254,11 +2254,12 @@ Error generating stack: `+e.message+`
           align-items: center;
           justify-content: center;
           line-height: 1;
+          z-index: 10001; /* Ensure close button stays on top */
           transition: var(--transition-fast);
         }
 
         .lightbox-close-btn:hover {
-          background-color: rgba(255, 255, 255, 0.2);
+          background-color: rgba(0, 0, 0, 0.8);
           transform: scale(1.05);
         }
 
@@ -2288,13 +2289,15 @@ Error generating stack: `+e.message+`
         .modal-backdrop {
           position: fixed;
           inset: 0;
-          background-color: rgba(18, 40, 20, 0.4); /* Transparent primary-dark backdrop */
-          backdrop-filter: blur(4px);
+          background-color: rgba(11, 37, 69, 0.5); /* Semi-transparent navy backdrop */
+          backdrop-filter: blur(5px);
           display: flex;
-          align-items: center;
+          align-items: flex-start; /* Prevent top edge overflow/cutoff on tall content */
           justify-content: center;
-          padding: 20px;
-          z-index: 1000;
+          padding: 40px 20px;
+          z-index: 10000; /* Higher than headers and overlays */
+          overflow-y: auto; /* Scroll fallback for the backdrop if modal exceeds window */
+          -webkit-overflow-scrolling: touch;
           animation: fadeInBackdrop 0.25s ease-out forwards;
         }
 
@@ -2303,11 +2306,13 @@ Error generating stack: `+e.message+`
           border-radius: var(--radius-lg);
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
           width: 100%;
-          max-height: 90vh;
+          max-height: 80vh; /* Good desktop size */
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          border: 1px solid rgba(30, 70, 32, 0.1);
+          margin-top: auto;
+          margin-bottom: auto; /* Vertically center dynamically */
+          border: 1px solid rgba(11, 37, 69, 0.1);
         }
 
         .size-sm { max-width: 480px; }
@@ -2353,6 +2358,7 @@ Error generating stack: `+e.message+`
           padding: 24px;
           overflow-y: auto;
           flex-grow: 1;
+          -webkit-overflow-scrolling: touch;
         }
 
         /* Animations */
@@ -2373,15 +2379,18 @@ Error generating stack: `+e.message+`
         @media (max-width: 600px) {
           .modal-backdrop {
             padding: 10px;
+            align-items: flex-start;
           }
           .modal-container {
-            max-height: 95vh;
+            max-height: calc(100dvh - 20px); /* Use dynamic viewport height to adapt to keyboards and url bars */
+            margin-top: auto;
+            margin-bottom: auto;
           }
           .modal-body-content {
             padding: 16px;
           }
         }
-      `})]}):null}var pt=({label:e,value:t,onChange:n})=>(0,P.jsxs)(`div`,{className:`image-upload-widget`,children:[(0,P.jsx)(`label`,{className:`form-label`,children:e}),(0,P.jsx)(`div`,{className:`upload-container`,children:t?(0,P.jsxs)(`div`,{className:`upload-preview-wrapper`,children:[(0,P.jsx)(`img`,{src:t,alt:`Preview`,className:`upload-preview`}),(0,P.jsx)(`button`,{type:`button`,className:`btn-remove-image`,onClick:()=>{n(``)},title:`ลบรูปภาพ`,children:`ลบรูปภาพนี้ออก`})]}):(0,P.jsxs)(`label`,{className:`upload-dropzone`,children:[(0,P.jsx)(`span`,{style:{display:`inline-flex`,alignItems:`center`,justifyContent:`center`,width:`48px`,height:`48px`,borderRadius:`50%`,backgroundColor:`var(--color-primary-light)`,color:`var(--color-primary)`,marginBottom:`8px`,fontSize:`1.5rem`,fontWeight:`bold`},children:`+`}),(0,P.jsx)(`span`,{className:`upload-text`,children:`คลิกเพื่ออัปโหลดรูปภาพโดยตรง (ไม่เกิน 2MB)`}),(0,P.jsx)(`input`,{type:`file`,accept:`image/*`,onChange:e=>{let t=e.target.files[0];if(t){let e=new FileReader;e.onloadend=()=>{let t=e.result,r=new Image;r.src=t,r.onload=()=>{let e=r.width,t=r.height;(e>800||t>800)&&(e>t?(t=Math.round(t*800/e),e=800):(e=Math.round(e*800/t),t=800));let i=document.createElement(`canvas`);i.width=e,i.height=t,i.getContext(`2d`).drawImage(r,0,0,e,t),n(i.toDataURL(`image/jpeg`,.7))}},e.readAsDataURL(t)}},className:`hidden-file-input`})]})})]}),mt=e=>e?e.includes(`|`)?e.split(`|`).map(e=>e.trim()).filter(Boolean):e.trim().startsWith(`data:`)?[e.trim()]:e.split(`,`).map(e=>e.trim()).filter(Boolean):[],ht=({label:e,value:t,onChange:n})=>{let r=mt(t),i=e=>{let t=Array.from(e.target.files),i=[...r],a=0;if(i.length+t.length>8){alert(`สามารถอัปโหลดภาพเพิ่มเติมได้สูงสุด 8 รูป`);return}t.forEach(e=>{let r=new FileReader;r.onloadend=()=>{let e=r.result,o=new Image;o.src=e,o.onload=()=>{let e=o.width,r=o.height;(e>600||r>600)&&(e>r?(r=Math.round(r*600/e),e=600):(e=Math.round(e*600/r),r=600));let s=document.createElement(`canvas`);s.width=e,s.height=r,s.getContext(`2d`).drawImage(o,0,0,e,r);let c=s.toDataURL(`image/jpeg`,.6);i.push(c),a++,a===t.length&&n(i.join(`|`))}},r.readAsDataURL(e)})},a=e=>{n(r.filter((t,n)=>n!==e).join(`|`))};return(0,P.jsxs)(`div`,{className:`image-upload-widget`,children:[(0,P.jsx)(`label`,{className:`form-label`,children:e}),(0,P.jsx)(`div`,{className:`multiple-upload-container`,children:(0,P.jsxs)(`div`,{className:`gallery-previews-grid`,children:[r.map((e,t)=>(0,P.jsxs)(`div`,{className:`gallery-preview-item`,children:[(0,P.jsx)(`img`,{src:e,alt:`Preview ${t+1}`,className:`gallery-preview-img`}),(0,P.jsx)(`button`,{type:`button`,className:`btn-remove-gallery-img`,onClick:()=>a(t),children:`×`})]},t)),r.length<8&&(0,P.jsxs)(`label`,{className:`upload-dropzone-square`,children:[(0,P.jsx)(`span`,{style:{fontSize:`1.25rem`,fontWeight:`bold`},children:`+`}),(0,P.jsx)(`span`,{style:{fontSize:`0.65rem`,fontWeight:`600`},children:`เพิ่มรูปภาพ`}),(0,P.jsx)(`input`,{type:`file`,accept:`image/*`,multiple:!0,onChange:i,className:`hidden-file-input`})]})]})})]})},gt=({showAlert:e})=>{let t=I.getSupabaseConfig()||{url:``,key:``,source:`local`},[n,r]=(0,_.useState)(t.url),[i,a]=(0,_.useState)(t.key),[o,s]=(0,_.useState)(t.url?`success`:`idle`),[c,l]=(0,_.useState)(``),u=`-- สคริปต์ SQL สำหรับสร้างตารางบนระบบคลาวด์ Supabase
+      `})]}):null}var pt=({label:e,value:t,onChange:n})=>(0,P.jsxs)(`div`,{className:`image-upload-widget`,children:[(0,P.jsx)(`label`,{className:`form-label`,children:e}),(0,P.jsx)(`div`,{className:`upload-container`,children:t?(0,P.jsxs)(`div`,{className:`upload-preview-wrapper`,children:[(0,P.jsx)(`img`,{src:t,alt:`Preview`,className:`upload-preview`}),(0,P.jsx)(`button`,{type:`button`,className:`btn-remove-image`,onClick:()=>{n(``)},title:`ลบรูปภาพ`,children:`ลบรูปภาพนี้ออก`})]}):(0,P.jsxs)(`label`,{className:`upload-dropzone`,children:[(0,P.jsx)(`span`,{style:{display:`inline-flex`,alignItems:`center`,justifyContent:`center`,width:`48px`,height:`48px`,borderRadius:`50%`,backgroundColor:`var(--color-primary-light)`,color:`var(--color-primary)`,marginBottom:`8px`,fontSize:`1.5rem`,fontWeight:`bold`},children:`+`}),(0,P.jsx)(`span`,{className:`upload-text`,children:`คลิกเพื่ออัปโหลดรูปภาพโดยตรง (ไม่เกิน 2MB)`}),(0,P.jsx)(`input`,{type:`file`,accept:`image/*`,onChange:e=>{let t=e.target.files[0];if(t){let e=new FileReader;e.onloadend=()=>{let t=e.result,r=new Image;r.src=t,r.onload=()=>{let e=r.width,t=r.height,i=1600;(e>i||t>i)&&(e>t?(t=Math.round(t*i/e),e=i):(e=Math.round(e*i/t),t=i));let a=document.createElement(`canvas`);a.width=e,a.height=t,a.getContext(`2d`).drawImage(r,0,0,e,t),n(a.toDataURL(`image/jpeg`,.85))}},e.readAsDataURL(t)}},className:`hidden-file-input`})]})})]}),mt=e=>e?e.includes(`|`)?e.split(`|`).map(e=>e.trim()).filter(Boolean):e.trim().startsWith(`data:`)?[e.trim()]:e.split(`,`).map(e=>e.trim()).filter(Boolean):[],ht=({label:e,value:t,onChange:n})=>{let r=mt(t),i=e=>{let t=Array.from(e.target.files),i=[...r],a=0;if(i.length+t.length>8){alert(`สามารถอัปโหลดภาพเพิ่มเติมได้สูงสุด 8 รูป`);return}t.forEach(e=>{let r=new FileReader;r.onloadend=()=>{let e=r.result,o=new Image;o.src=e,o.onload=()=>{let e=o.width,r=o.height,s=1200;(e>s||r>s)&&(e>r?(r=Math.round(r*s/e),e=s):(e=Math.round(e*s/r),r=s));let c=document.createElement(`canvas`);c.width=e,c.height=r,c.getContext(`2d`).drawImage(o,0,0,e,r);let l=c.toDataURL(`image/jpeg`,.8);i.push(l),a++,a===t.length&&n(i.join(`|`))}},r.readAsDataURL(e)})},a=e=>{n(r.filter((t,n)=>n!==e).join(`|`))};return(0,P.jsxs)(`div`,{className:`image-upload-widget`,children:[(0,P.jsx)(`label`,{className:`form-label`,children:e}),(0,P.jsx)(`div`,{className:`multiple-upload-container`,children:(0,P.jsxs)(`div`,{className:`gallery-previews-grid`,children:[r.map((e,t)=>(0,P.jsxs)(`div`,{className:`gallery-preview-item`,children:[(0,P.jsx)(`img`,{src:e,alt:`Preview ${t+1}`,className:`gallery-preview-img`}),(0,P.jsx)(`button`,{type:`button`,className:`btn-remove-gallery-img`,onClick:()=>a(t),children:`×`})]},t)),r.length<8&&(0,P.jsxs)(`label`,{className:`upload-dropzone-square`,children:[(0,P.jsx)(`span`,{style:{fontSize:`1.25rem`,fontWeight:`bold`},children:`+`}),(0,P.jsx)(`span`,{style:{fontSize:`0.65rem`,fontWeight:`600`},children:`เพิ่มรูปภาพ`}),(0,P.jsx)(`input`,{type:`file`,accept:`image/*`,multiple:!0,onChange:i,className:`hidden-file-input`})]})]})})]})},gt=({showAlert:e})=>{let t=I.getSupabaseConfig()||{url:``,key:``,source:`local`},[n,r]=(0,_.useState)(t.url),[i,a]=(0,_.useState)(t.key),[o,s]=(0,_.useState)(t.url?`success`:`idle`),[c,l]=(0,_.useState)(``),u=`-- สคริปต์ SQL สำหรับสร้างตารางบนระบบคลาวด์ Supabase
 CREATE TABLE school_portal_data (
   key VARCHAR(255) PRIMARY KEY,
   value JSONB NOT NULL,
