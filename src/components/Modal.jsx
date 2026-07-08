@@ -64,13 +64,15 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
         .modal-backdrop {
           position: fixed;
           inset: 0;
-          background-color: rgba(18, 40, 20, 0.4); /* Transparent primary-dark backdrop */
-          backdrop-filter: blur(4px);
+          background-color: rgba(11, 37, 69, 0.5); /* Semi-transparent navy backdrop */
+          backdrop-filter: blur(5px);
           display: flex;
-          align-items: center;
+          align-items: flex-start; /* Prevent top edge overflow/cutoff on tall content */
           justify-content: center;
-          padding: 20px;
-          z-index: 1000;
+          padding: 40px 20px;
+          z-index: 10000; /* Higher than headers and overlays */
+          overflow-y: auto; /* Scroll fallback for the backdrop if modal exceeds window */
+          -webkit-overflow-scrolling: touch;
           animation: fadeInBackdrop 0.25s ease-out forwards;
         }
 
@@ -79,11 +81,13 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
           border-radius: var(--radius-lg);
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
           width: 100%;
-          max-height: 90vh;
+          max-height: 80vh; /* Good desktop size */
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          border: 1px solid rgba(30, 70, 32, 0.1);
+          margin-top: auto;
+          margin-bottom: auto; /* Vertically center dynamically */
+          border: 1px solid rgba(11, 37, 69, 0.1);
         }
 
         .size-sm { max-width: 480px; }
@@ -129,6 +133,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
           padding: 24px;
           overflow-y: auto;
           flex-grow: 1;
+          -webkit-overflow-scrolling: touch;
         }
 
         /* Animations */
@@ -149,9 +154,12 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
         @media (max-width: 600px) {
           .modal-backdrop {
             padding: 10px;
+            align-items: flex-start;
           }
           .modal-container {
-            max-height: 95vh;
+            max-height: calc(100dvh - 20px); /* Use dynamic viewport height to adapt to keyboards and url bars */
+            margin-top: auto;
+            margin-bottom: auto;
           }
           .modal-body-content {
             padding: 16px;

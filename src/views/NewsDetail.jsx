@@ -639,10 +639,10 @@ export default function NewsDetail({ newsItem, setView, setCurrentNewsItem }) {
 
         .lightbox-close-btn {
           position: absolute;
-          top: 24px;
-          right: 24px;
-          background: rgba(255, 255, 255, 0.1);
-          border: none;
+          top: max(24px, env(safe-area-inset-top));
+          right: max(24px, env(safe-area-inset-right));
+          background: rgba(0, 0, 0, 0.6); /* Darker overlay for better contrast */
+          border: 1px solid rgba(255, 255, 255, 0.2);
           color: white;
           font-size: 2rem;
           width: 48px;
@@ -653,11 +653,12 @@ export default function NewsDetail({ newsItem, setView, setCurrentNewsItem }) {
           align-items: center;
           justify-content: center;
           line-height: 1;
+          z-index: 10001; /* Ensure close button stays on top */
           transition: var(--transition-fast);
         }
 
         .lightbox-close-btn:hover {
-          background-color: rgba(255, 255, 255, 0.2);
+          background-color: rgba(0, 0, 0, 0.8);
           transform: scale(1.05);
         }
 

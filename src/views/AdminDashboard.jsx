@@ -21,7 +21,7 @@ const ImageUploadWidget = ({ label, value, onChange }) => {
         img.onload = () => {
           let width = img.width;
           let height = img.height;
-          const maxDim = 800; // Limit max resolution to 800px
+          const maxDim = 1600; // Limit max resolution to 1600px for high quality
 
           if (width > maxDim || height > maxDim) {
             if (width > height) {
@@ -39,8 +39,8 @@ const ImageUploadWidget = ({ label, value, onChange }) => {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Compress to JPEG with 0.7 quality
-          const compressed = canvas.toDataURL('image/jpeg', 0.7);
+          // Compress to JPEG with 0.85 quality for clearer display
+          const compressed = canvas.toDataURL('image/jpeg', 0.85);
           onChange(compressed);
         };
       };
@@ -116,7 +116,7 @@ const MultipleImageUploadWidget = ({ label, value, onChange }) => {
         img.onload = () => {
           let width = img.width;
           let height = img.height;
-          const maxDim = 600; // Limit gallery items max resolution to 600px
+          const maxDim = 1200; // Limit gallery items max resolution to 1200px for clearer display
 
           if (width > maxDim || height > maxDim) {
             if (width > height) {
@@ -134,8 +134,8 @@ const MultipleImageUploadWidget = ({ label, value, onChange }) => {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Compress to JPEG with 0.6 quality for smaller gallery storage size
-          const compressed = canvas.toDataURL('image/jpeg', 0.6);
+          // Compress to JPEG with 0.8 quality for clearer gallery storage size
+          const compressed = canvas.toDataURL('image/jpeg', 0.8);
           loadedImages.push(compressed);
           loadedCount++;
           
