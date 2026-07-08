@@ -78,7 +78,7 @@ export default function Footer({ schoolInfo, setView }) {
                 </a>
               </li>
               <li>
-                <a href="https://kpt2.go.th" target="_blank" rel="noopener noreferrer" className="ext-link">
+                <a href="https://www.kpp2.go.th/main/index.php" target="_blank" rel="noopener noreferrer" className="ext-link">
                   สพป.กำแพงเพชร เขต 2 <ExternalLink size={12} />
                 </a>
               </li>
@@ -97,7 +97,7 @@ export default function Footer({ schoolInfo, setView }) {
         <div className="container footer-bottom-content">
           <p>© พ.ศ. {currentYear} {schoolInfo.name}. สงวนลิขสิทธิ์ข้อมูลตามพระราชบัญญัติลิขสิทธิ์</p>
           <div className="footer-credits-admin" style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <p>พัฒนาและบำรุงรักษาโดย กลุ่มเทคโนโลยีสารสนเทศเพื่อการศึกษา</p>
+            <p>พัฒนาและบำรุงรักษาโดย โรงเรียนบ้านวังหัวแหวนพัฒนา</p>
             <button 
               onClick={() => handleNav('login')} 
               className="admin-login-footer-btn"
