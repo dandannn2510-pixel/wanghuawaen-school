@@ -225,9 +225,17 @@ CREATE POLICY "Allow anon delete" ON school_portal_data FOR DELETE USING (true);
       return;
     }
 
+    // Clean URL: remove trailing slashes and /rest/v1 suffix if present
+    let cleanUrl = dbUrl.trim().replace(/\/+$/, "");
+    if (cleanUrl.endsWith('/rest/v1')) {
+      cleanUrl = cleanUrl.substring(0, cleanUrl.length - 8);
+    }
+    cleanUrl = cleanUrl.replace(/\/+$/, "");
+    setDbUrl(cleanUrl); // Update visual input field
+
     setStatus('testing');
     try {
-      const testRes = await fetch(`${dbUrl}/rest/v1/school_portal_data?select=*&limit=1`, {
+      const testRes = await fetch(`${cleanUrl}/rest/v1/school_portal_data?select=*&limit=1`, {
         headers: {
           'apikey': dbKey,
           'Authorization': `Bearer ${dbKey}`

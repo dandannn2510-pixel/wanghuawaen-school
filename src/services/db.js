@@ -202,7 +202,13 @@ export const dbService = {
     if (!url || !key) {
       localStorage.removeItem(STORAGE_KEYS.SUPABASE_CONFIG);
     } else {
-      localStorage.setItem(STORAGE_KEYS.SUPABASE_CONFIG, JSON.stringify({ url, key }));
+      // Clean URL: remove trailing slashes and /rest/v1 suffix if present
+      let cleanUrl = url.trim().replace(/\/+$/, "");
+      if (cleanUrl.endsWith('/rest/v1')) {
+        cleanUrl = cleanUrl.substring(0, cleanUrl.length - 8);
+      }
+      cleanUrl = cleanUrl.replace(/\/+$/, "");
+      localStorage.setItem(STORAGE_KEYS.SUPABASE_CONFIG, JSON.stringify({ url: cleanUrl, key: key.trim() }));
     }
   },
 
