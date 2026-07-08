@@ -2141,6 +2141,21 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
           .admin-main-content {
             padding: 16px;
           }
+          .admin-toast-alert {
+            top: 12px;
+            right: 12px;
+            left: 12px;
+            width: auto;
+            justify-content: center;
+          }
+          .modal-tabs-header {
+            flex-wrap: wrap;
+            gap: 4px;
+          }
+          .modal-tab-nav {
+            font-size: 0.85rem;
+            padding: 8px 12px;
+          }
         }
 
         .admin-content-header {

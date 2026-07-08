@@ -397,6 +397,36 @@ export default function Header({ currentView, setView, user, setUser, schoolInfo
             cursor: pointer;
           }
         }
+
+        /* Mobile specific header layout fixes to prevent wrapping and blocking issues */
+        @media (max-width: 768px) {
+          .header-top-bar {
+            display: none; /* Hide top bar on mobile to save vertical space */
+          }
+        }
+
+        @media (max-width: 600px) {
+          .logo-title {
+            font-size: 1.05rem; /* Shrink school title font to fit narrow screens */
+          }
+          .logo-subtitle {
+            font-size: 0.6rem;
+            letter-spacing: 0.2px;
+          }
+          .school-logo-crest {
+            width: 40px;
+            height: 40px; /* Make logo smaller on mobile */
+          }
+        }
+
+        @media (max-width: 400px) {
+          .logo-title {
+            font-size: 0.95rem; /* Prevent wrapping on extremely small phones */
+          }
+          .logo-subtitle {
+            display: none; /* Hide English subtitle on tiny viewports to keep logo clean */
+          }
+        }
       `}</style>
     </header>
   );

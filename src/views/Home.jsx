@@ -290,6 +290,13 @@ export default function Home({ schoolInfo, setView, setCurrentNewsItem }) {
           .hero-banner { padding: 70px 0; }
         }
 
+        @media (max-width: 480px) {
+          .hero-title { font-size: 1.65rem; }
+          .hero-slogan { font-size: 1.05rem; }
+          .hero-banner { padding: 55px 0; }
+          .hero-badge { font-size: 0.75rem; padding: 4px 12px; margin-bottom: 16px; }
+        }
+
         /* Director visual */
         .director-visual {
           display: flex;
