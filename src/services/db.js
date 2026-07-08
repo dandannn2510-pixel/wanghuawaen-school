@@ -4,7 +4,9 @@
 const STORAGE_KEYS = {
   SCHOOL_INFO: 'wanghuawaen_school_info',
   NEWS: 'wanghuawaen_news',
-  STAFF: 'wanghuawaen_staff'
+  STAFF: 'wanghuawaen_staff',
+  MESSAGES: 'wanghuawaen_messages',
+  SUPABASE_CONFIG: 'wanghuawaen_supabase_config'
 };
 
 const DEFAULT_SCHOOL_INFO = {
@@ -175,12 +177,114 @@ const initializeStorage = () => {
 initializeStorage();
 
 export const dbService = {
+  // --- Supabase Cloud Sync Operations ---
+  getSupabaseConfig() {
+    const envUrl = import.meta.env.VITE_SUPABASE_URL;
+    const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (envUrl && envKey) {
+      return { url: envUrl, key: envKey, source: 'env' };
+    }
+    const local = localStorage.getItem(STORAGE_KEYS.SUPABASE_CONFIG);
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (parsed.url && parsed.key) {
+          return { url: parsed.url, key: parsed.key, source: 'local' };
+        }
+      } catch (e) {
+        console.error("Error parsing local Supabase config:", e);
+      }
+    }
+    return null;
+  },
+
+  saveSupabaseConfig(url, key) {
+    if (!url || !key) {
+      localStorage.removeItem(STORAGE_KEYS.SUPABASE_CONFIG);
+    } else {
+      localStorage.setItem(STORAGE_KEYS.SUPABASE_CONFIG, JSON.stringify({ url, key }));
+    }
+  },
+
+  async syncFromCloud() {
+    const config = this.getSupabaseConfig();
+    if (!config) return null;
+
+    try {
+      const res = await fetch(`${config.url}/rest/v1/school_portal_data?select=*`, {
+        headers: {
+          'apikey': config.key,
+          'Authorization': `Bearer ${config.key}`
+        }
+      });
+      if (!res.ok) {
+        throw new Error(`Supabase REST query failed: ${res.statusText}`);
+      }
+      const data = await res.json();
+      
+      data.forEach(item => {
+        if (item.key && item.value !== undefined) {
+          let storageKey = '';
+          if (item.key === 'school_info') storageKey = STORAGE_KEYS.SCHOOL_INFO;
+          else if (item.key === 'news') storageKey = STORAGE_KEYS.NEWS;
+          else if (item.key === 'staff') storageKey = STORAGE_KEYS.STAFF;
+          else if (item.key === 'messages') storageKey = STORAGE_KEYS.MESSAGES;
+
+          if (storageKey) {
+            localStorage.setItem(storageKey, JSON.stringify(item.value));
+          }
+        }
+      });
+      console.log('Database synced from cloud successfully.');
+      return true;
+    } catch (e) {
+      console.error('Failed to sync database from cloud:', e);
+      return false;
+    }
+  },
+
+  async syncToCloud(storageKey, value) {
+    const config = this.getSupabaseConfig();
+    if (!config) return;
+
+    let cloudKey = '';
+    if (storageKey === STORAGE_KEYS.SCHOOL_INFO) cloudKey = 'school_info';
+    else if (storageKey === STORAGE_KEYS.NEWS) cloudKey = 'news';
+    else if (storageKey === STORAGE_KEYS.STAFF) cloudKey = 'staff';
+    else if (storageKey === STORAGE_KEYS.MESSAGES) cloudKey = 'messages';
+
+    if (!cloudKey) return;
+
+    try {
+      const res = await fetch(`${config.url}/rest/v1/school_portal_data`, {
+        method: 'POST',
+        headers: {
+          'apikey': config.key,
+          'Authorization': `Bearer ${config.key}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          key: cloudKey,
+          value: value,
+          updated_at: new Date().toISOString()
+        })
+      });
+      if (!res.ok) {
+        console.error(`Supabase cloud sync failed for key ${cloudKey}:`, res.statusText);
+      } else {
+        console.log(`Supabase cloud sync success for key: ${cloudKey}`);
+      }
+    } catch (e) {
+      console.error(`Supabase cloud sync connection error for key ${cloudKey}:`, e);
+    }
+  },
+
   // --- School Info Operations ---
   getSchoolInfo() {
     initializeStorage();
     try {
       const info = JSON.parse(localStorage.getItem(STORAGE_KEYS.SCHOOL_INFO));
-      // Auto upgrade model if missing new fields or using old color scheme
       let needSave = false;
       if (info) {
         if (!info.stats || !info.vision) {
@@ -216,8 +320,8 @@ export const dbService = {
   updateSchoolInfo(info) {
     initializeStorage();
     localStorage.setItem(STORAGE_KEYS.SCHOOL_INFO, JSON.stringify(info));
-    // Trigger design variables update
     updateCSSVariables(info.colors);
+    this.syncToCloud(STORAGE_KEYS.SCHOOL_INFO, info);
     return info;
   },
 
@@ -226,7 +330,6 @@ export const dbService = {
     initializeStorage();
     try {
       const news = JSON.parse(localStorage.getItem(STORAGE_KEYS.NEWS)) || [];
-      // Sanitize items so they always have views, status, pinned settings
       const sanitized = news.map(item => ({
         views: 0,
         status: 'published',
@@ -236,7 +339,6 @@ export const dbService = {
         galleryUrls: '',
         ...item
       }));
-      // Sort news: Pinned first, then by date descending
       return sanitized.sort((a, b) => {
         if (a.isPinned && !b.isPinned) return -1;
         if (!a.isPinned && b.isPinned) return 1;
@@ -268,6 +370,7 @@ export const dbService = {
     };
     news.push(newItem);
     localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(news));
+    this.syncToCloud(STORAGE_KEYS.NEWS, news);
     return newItem;
   },
 
@@ -275,8 +378,9 @@ export const dbService = {
     const news = JSON.parse(localStorage.getItem(STORAGE_KEYS.NEWS)) || [];
     const index = news.findIndex(n => n.id === id);
     if (index !== -1) {
-      news[index] = { ...news[index], ...updatedItem, id }; // ensure ID is preserved
+      news[index] = { ...news[index], ...updatedItem, id };
       localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(news));
+      this.syncToCloud(STORAGE_KEYS.NEWS, news);
       return news[index];
     }
     throw new Error(`News item with id ${id} not found.`);
@@ -286,6 +390,7 @@ export const dbService = {
     const news = JSON.parse(localStorage.getItem(STORAGE_KEYS.NEWS)) || [];
     const filteredNews = news.filter(n => n.id !== id);
     localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(filteredNews));
+    this.syncToCloud(STORAGE_KEYS.NEWS, filteredNews);
     return true;
   },
 
@@ -296,6 +401,7 @@ export const dbService = {
       if (index !== -1) {
         news[index].views = (news[index].views || 0) + 1;
         localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(news));
+        this.syncToCloud(STORAGE_KEYS.NEWS, news);
         return news[index];
       }
     } catch (e) {
@@ -323,6 +429,7 @@ export const dbService = {
     const staff = this.getStaff();
     staff.director = { ...staff.director, ...directorInfo };
     localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
+    this.syncToCloud(STORAGE_KEYS.STAFF, staff);
     return staff.director;
   },
 
@@ -334,6 +441,7 @@ export const dbService = {
     };
     staff.teachers.push(newTeacher);
     localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
+    this.syncToCloud(STORAGE_KEYS.STAFF, staff);
     return newTeacher;
   },
 
@@ -343,6 +451,7 @@ export const dbService = {
     if (index !== -1) {
       staff.teachers[index] = { ...staff.teachers[index], ...updatedTeacherInfo, id };
       localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
+      this.syncToCloud(STORAGE_KEYS.STAFF, staff);
       return staff.teachers[index];
     }
     throw new Error(`Teacher with id ${id} not found.`);
@@ -352,6 +461,7 @@ export const dbService = {
     const staff = this.getStaff();
     staff.teachers = staff.teachers.filter(t => t.id !== id);
     localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
+    this.syncToCloud(STORAGE_KEYS.STAFF, staff);
     return true;
   },
 
@@ -359,7 +469,36 @@ export const dbService = {
     const staff = this.getStaff();
     staff.teachers = teachersList;
     localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
+    this.syncToCloud(STORAGE_KEYS.STAFF, staff);
     return true;
+  },
+
+  // --- Contact Messages Operations ---
+  getMessages() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.MESSAGES) || '[]');
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  },
+
+  saveMessage(message) {
+    const existingMsgs = this.getMessages();
+    const newMsg = {
+      ...message,
+      id: `msg-${Date.now()}`,
+      date: new Date().toISOString()
+    };
+    existingMsgs.push(newMsg);
+    localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(existingMsgs));
+    this.syncToCloud(STORAGE_KEYS.MESSAGES, existingMsgs);
+    return newMsg;
+  },
+
+  clearMessages() {
+    localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify([]));
+    this.syncToCloud(STORAGE_KEYS.MESSAGES, []);
   }
 };
 

@@ -185,6 +185,195 @@ const MultipleImageUploadWidget = ({ label, value, onChange }) => {
   );
 };
 
+// Component to handle Supabase Cloud Sync settings and guidelines
+const SupabaseSyncCard = ({ showAlert }) => {
+  const currentConfig = dbService.getSupabaseConfig() || { url: '', key: '', source: 'local' };
+  const [dbUrl, setDbUrl] = useState(currentConfig.url);
+  const [dbKey, setDbKey] = useState(currentConfig.key);
+  const [status, setStatus] = useState(currentConfig.url ? 'success' : 'idle'); // idle, testing, success, error
+  const [testingError, setTestingError] = useState('');
+
+  const sqlQuery = `-- สคริปต์ SQL สำหรับสร้างตารางบนระบบคลาวด์ Supabase
+CREATE TABLE school_portal_data (
+  key VARCHAR(255) PRIMARY KEY,
+  value JSONB NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- เปิดใช้งานสิทธิ์เข้าถึง (Row Level Security)
+ALTER TABLE school_portal_data ENABLE ROW LEVEL SECURITY;
+
+-- สร้างนโยบายการดึงและแก้ไขข้อมูลแบบเรียลไทม์
+CREATE POLICY "Allow public select" ON school_portal_data FOR SELECT USING (true);
+CREATE POLICY "Allow anon insert" ON school_portal_data FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow anon update" ON school_portal_data FOR UPDATE USING (true);
+CREATE POLICY "Allow anon delete" ON school_portal_data FOR DELETE USING (true);`;
+
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(sqlQuery);
+    alert('คัดลอกคำสั่งสคริปต์ SQL เรียบร้อยแล้ว! สามารถนำไปวางรันใน Supabase ได้ทันที');
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setTestingError('');
+    
+    if (!dbUrl || !dbKey) {
+      dbService.saveSupabaseConfig('', '');
+      setStatus('idle');
+      showAlert('ยกเลิกการเชื่อมต่อระบบคลาวด์แล้ว ย้อนกลับมาใช้งานระบบจำลองในเครื่องนี้ (Local Storage)', 'warning');
+      return;
+    }
+
+    setStatus('testing');
+    try {
+      const testRes = await fetch(`${dbUrl}/rest/v1/school_portal_data?select=*&limit=1`, {
+        headers: {
+          'apikey': dbKey,
+          'Authorization': `Bearer ${dbKey}`
+        }
+      });
+      
+      if (testRes.ok) {
+        dbService.saveSupabaseConfig(dbUrl, dbKey);
+        // Force a startup sync to local storage immediately
+        const synced = await dbService.syncFromCloud();
+        setStatus('success');
+        if (synced) {
+          showAlert('เชื่อมต่อ Supabase สำเร็จ และซิงก์ข้อมูลคลาวด์ร่วมกันสำเร็จแล้ว!', 'success');
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          showAlert('เชื่อมต่อ Supabase สำเร็จ แต่ยังไม่มีข้อมูลในตารางคลาวด์ (ระบบจะทำการส่งข้อมูลจากเครื่องนี้ขึ้นไปเมื่อมีการกดบันทึกข่าวหรือตั้งค่าเว็บไซต์ใหม่)', 'success');
+        }
+      } else {
+        if (testRes.status === 404) {
+          throw new Error('ไม่พบตาราง school_portal_data กรุณาตรวจสอบว่าคุณได้สร้างตารางตามสคริปต์ SQL ด้านล่างหรือยัง');
+        } else {
+          throw new Error(`การเชื่อมต่อฐานข้อมูลถูกปฏิเสธ (HTTP ${testRes.status} ${testRes.statusText})`);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setTestingError(err.message || 'ไม่สามารถติดต่อไปยังโฮสต์ปลายทางได้ กรุณาตรวจสอบ Project URL อีกครั้ง');
+      setStatus('error');
+      showAlert('เชื่อมต่อฐานข้อมูลล้มเหลว กรุณาตรวจสอบความถูกต้องของพารามิเตอร์คีย์', 'danger');
+    }
+  };
+
+  return (
+    <div className="card-layout form-card-layout cloud-sync-card animate-fade-in mt-4">
+      <h3 className="card-inner-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Shield size={18} className="text-primary" /> การเชื่อมต่อข้อมูลคลาวด์ข้ามอุปกรณ์ (Supabase Cloud Sync)
+      </h3>
+      <p className="text-muted" style={{ fontSize: '0.85rem', marginBottom: '16px' }}>
+        อัปเกรดฐานข้อมูลจากแบบเก็บในเครื่องเบราว์เซอร์ส่วนตัว (Local Storage) ไปเก็บที่คลาวด์ Supabase ของโรงเรียน เพื่อให้สามารถล็อกอินแก้ไขข่าวสารจากมือถือหรือคอมพิวเตอร์เครื่องใดก็ได้ และข้อมูลจะซิงก์ตรงกันทุกที่ทันที
+      </p>
+
+      {currentConfig.source === 'env' ? (
+        <div className="env-badge-note">
+          🟢 <strong>ทำงานอยู่บนการกำหนดค่าเซิร์ฟเวอร์ระบบ (.env):</strong> แอปกำลังแลกเปลี่ยนข้อมูลผ่านตัวแปรระดับเซิร์ฟเวอร์โดยตรง (ไม่จำเป็นต้องระบุด้านล่าง)
+        </div>
+      ) : null}
+
+      <form onSubmit={handleSave}>
+        <div className="grid-2">
+          <div className="form-group">
+            <label className="form-label">Supabase Project URL</label>
+            <input 
+              type="url" 
+              className="form-input code-font" 
+              placeholder="https://xxxx.supabase.co"
+              required={dbUrl.length > 0 || dbKey.length > 0}
+              value={dbUrl}
+              onChange={(e) => setDbUrl(e.target.value.trim())}
+              disabled={currentConfig.source === 'env'}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Supabase Anon Key</label>
+            <input 
+              type="text" 
+              className="form-input code-font" 
+              placeholder="eyJhbGciOi..."
+              required={dbUrl.length > 0 || dbKey.length > 0}
+              value={dbKey}
+              onChange={(e) => setDbKey(e.target.value.trim())}
+              disabled={currentConfig.source === 'env'}
+            />
+          </div>
+        </div>
+
+        {testingError && (
+          <div className="error-alert mt-2 mb-2">
+            <strong>เกิดข้อผิดพลาด:</strong> {testingError}
+          </div>
+        )}
+
+        <div className="flex-between align-items-center mt-3">
+          <div>
+            {status === 'testing' && <span className="status-indicator text-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><RefreshCw size={14} className="animate-spin" /> กำลังตรวจสอบและซิงก์ข้อมูล...</span>}
+            {status === 'success' && <span className="status-indicator text-success">🟢 เชื่อมต่อกับระบบคลาวด์สำเร็จ (แชร์ข้อมูลแบบเรียลไทม์)</span>}
+            {status === 'error' && <span className="status-indicator text-danger">🔴 การเชื่อมต่อล้มเหลว (ทำงานในโหมดบันทึกเครื่องเดียวออฟไลน์)</span>}
+            {status === 'idle' && <span className="status-indicator text-muted">⚪ ทำงานในโหมดปกติออฟไลน์ (แก้ไขข้อมูลได้เฉพาะเบราว์เซอร์เครื่องนี้)</span>}
+          </div>
+          <button type="submit" className="btn btn-primary" disabled={status === 'testing' || currentConfig.source === 'env'}>
+            <Save size={16} /> บันทึกและทดสอบเชื่อมต่อคลาวด์
+          </button>
+        </div>
+      </form>
+
+      <div className="sql-setup-instruction mt-4" style={{ borderTop: '1px dashed var(--color-border)', paddingTop: '16px' }}>
+        <h5 style={{ fontSize: '0.9rem', color: 'var(--color-primary)', fontWeight: '600', marginBottom: '8px' }}>
+          💡 ขั้นตอนการสมัครใช้งานบน Supabase ฟรีใน 1 นาที:
+        </h5>
+        <ol style={{ fontSize: '0.82rem', color: 'var(--color-text-main)', paddingLeft: '20px', lineHeight: '1.7' }}>
+          <li>สมัครและสร้างโปรเจกต์ฟรีบนเว็บไซต์ <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline', color: 'var(--color-secondary)', fontWeight: '600' }}>supabase.com</a></li>
+          <li>ที่แถบเมนูด้านซ้าย เข้าไปที่หน้า <strong>SQL Editor</strong> แล้วกดปุ่ม <strong>New query</strong></li>
+          <li>กดปุ่มก๊อปปี้คำสั่ง SQL ด้านล่างนี้ นำไปวางในช่องรันคำสั่ง แล้วกดปุ่ม <strong>Run</strong></li>
+          <li>นำ Project URL และ API Key (Anon Key) จากหน้าโฮมเพจโปรเจกต์ มากรอกด้านบนแล้วกดบันทึกได้เลย!</li>
+        </ol>
+        
+        <div style={{ position: 'relative', marginTop: '12px' }}>
+          <pre style={{ 
+            backgroundColor: '#0f172a', 
+            color: '#e2e8f0', 
+            padding: '12px', 
+            borderRadius: '6px', 
+            fontSize: '0.72rem', 
+            maxHeight: '120px', 
+            overflowY: 'auto',
+            fontFamily: 'Consolas, monospace'
+          }}>
+            {sqlQuery}
+          </pre>
+          <button 
+            type="button" 
+            onClick={handleCopySql} 
+            className="btn-remove-gallery-img"
+            style={{ 
+              position: 'absolute', 
+              top: '8px', 
+              right: '8px', 
+              backgroundColor: 'var(--color-secondary)', 
+              color: 'var(--color-primary)', 
+              border: 'none', 
+              borderRadius: '4px', 
+              padding: '6px 12px', 
+              fontSize: '0.72rem', 
+              cursor: 'pointer',
+              fontWeight: '600',
+              width: 'auto',
+              height: 'auto'
+            }}
+          >
+            คัดลอกคำสั่ง SQL
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview, news, staff, settings, messages
   const [newsList, setNewsList] = useState([]);
@@ -247,7 +436,7 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
 
   const loadData = () => {
     setNewsList(dbService.getNews());
-    const savedMsgs = JSON.parse(localStorage.getItem('wanghuawaen_messages') || '[]');
+    const savedMsgs = dbService.getMessages();
     setMessages(savedMsgs.sort((a,b) => new Date(b.date) - new Date(a.date)));
     
     const staff = dbService.getStaff();
@@ -458,7 +647,7 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
 
   // Clear contact messages list
   const handleClearMessages = () => {
-    localStorage.removeItem('wanghuawaen_messages');
+    dbService.clearMessages();
     setMessages([]);
     showAlert('ล้างประวัติการข้อความติดต่อทั้งหมดเรียบร้อยแล้ว', 'warning');
   };
@@ -1289,6 +1478,9 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
                   </button>
                 </div>
               </form>
+
+              {/* Cloud Sync setup card */}
+              <SupabaseSyncCard showAlert={showAlert} />
             </div>
           )}
 
@@ -2901,6 +3093,32 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
         }
         .log-text {
           color: #cbd5e1;
+        }
+
+        /* Env note and cloud-sync settings styling */
+        .env-badge-note {
+          background-color: rgba(16, 185, 129, 0.08);
+          border: 1px solid rgba(16, 185, 129, 0.2);
+          color: #10b981;
+          padding: 12px 16px;
+          border-radius: var(--radius-md);
+          font-size: 0.85rem;
+          margin-bottom: 20px;
+          font-family: var(--font-heading);
+        }
+        .cloud-sync-card {
+          border-top: 5px solid var(--color-secondary) !important;
+        }
+        .status-indicator {
+          font-size: 0.82rem;
+          font-weight: 500;
+        }
+        .animate-spin {
+          animation: spin-anim 1s linear infinite;
+        }
+        @keyframes spin-anim {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>

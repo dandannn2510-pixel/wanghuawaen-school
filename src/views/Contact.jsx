@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle } from 'lucide-react';
+import { dbService } from '../services/db';
 
 export default function Contact({ schoolInfo }) {
   const [formData, setFormData] = useState({
@@ -13,17 +14,10 @@ export default function Contact({ schoolInfo }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulate sending enquiry message to school admin
     console.log("Submitted Enquiry:", formData);
     
-    // Save to LocalStorage mock messages for admin to see optionally
-    const existingMsgs = JSON.parse(localStorage.getItem('wanghuawaen_messages') || '[]');
-    existingMsgs.push({
-      ...formData,
-      id: `msg-${Date.now()}`,
-      date: new Date().toISOString()
-    });
-    localStorage.setItem('wanghuawaen_messages', JSON.stringify(existingMsgs));
+    // Save message via dbService to automatically upload to cloud database
+    dbService.saveMessage(formData);
 
     setSubmitted(true);
     setFormData({ name: '', email: '', phone: '', subject: 'ทั่วไป', message: '' });

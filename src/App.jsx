@@ -20,18 +20,26 @@ export default function App() {
 
   // Initialize school info and user session on mount
   useEffect(() => {
-    const info = dbService.getSchoolInfo();
-    setSchoolInfo(info);
-    
-    // Apply school colors to document CSS variables
-    if (info && info.colors) {
-      updateCSSVariables(info.colors);
-    }
+    const initApp = async () => {
+      // 1. Try to sync latest data from Supabase Cloud first
+      await dbService.syncFromCloud();
+      
+      // 2. Load school info from storage (which now has latest synced data)
+      const info = dbService.getSchoolInfo();
+      setSchoolInfo(info);
+      
+      // Apply school colors to document CSS variables
+      if (info && info.colors) {
+        updateCSSVariables(info.colors);
+      }
 
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
+      const currentUser = authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+      }
+    };
+
+    initApp();
 
     // Secret Entry Point: URL Hash routing listener
     const handleHashChange = () => {
