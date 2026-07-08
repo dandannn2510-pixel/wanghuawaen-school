@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { dbService } from '../services/db';
 import { 
   Newspaper, Settings, FileText, Plus, Edit, Trash2, LayoutDashboard, 
@@ -763,11 +764,14 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
               <h2 className="admin-panel-title">ระบบบริหารจัดการเนื้อหาโรงเรียน (CMS Panel)</h2>
               <p className="admin-panel-desc">โรงเรียนบ้านวังหัวแหวนพัฒนา สพป.กำแพงเพชร เขต 2</p>
             </div>
-            {alert.show && (
-              <div className={`admin-toast-alert alert-${alert.type} animate-fade-in`}>
-                <CheckCircle size={18} />
+            {alert.show && createPortal(
+              <div className={`admin-toast-alert alert-${alert.type}`}>
+                {alert.type === 'success' && <CheckCircle size={18} />}
+                {alert.type === 'warning' && <AlertTriangle size={18} />}
+                {alert.type === 'danger' && <AlertTriangle size={18} />}
                 <span>{alert.message}</span>
-              </div>
+              </div>,
+              document.body
             )}
           </div>
 
@@ -2160,14 +2164,24 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
         }
 
         .admin-toast-alert {
+          position: fixed;
+          top: 24px;
+          right: 24px;
+          z-index: 100000; /* Ensure visibility over all modals and panels */
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 10px 18px;
+          gap: 10px;
+          padding: 14px 22px;
           border-radius: var(--radius-md);
-          font-size: 0.9rem;
+          font-size: 0.95rem;
           font-weight: 600;
-          box-shadow: var(--shadow-md);
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.15);
+          animation: slideInToast 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideInToast {
+          from { transform: translateY(-20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
         }
 
         .alert-success { background-color: #ecfdf5; border: 1px solid #10b981; color: #065f46; }
