@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar, User, ArrowLeft, Newspaper, ChevronRight, Download, Eye, Pin, Image as ImageIcon } from 'lucide-react';
 import { dbService } from '../services/db';
 
@@ -686,8 +687,8 @@ export default function NewsDetail({ newsItem, setView, setCurrentNewsItem }) {
         }
       `}</style>
 
-      {/* Image Lightbox / Zoom Modal */}
-      {lightboxImage && (
+      {/* Image Lightbox / Zoom Modal (Rendered outside parent layout context to prevent transform-related fixed position issues) */}
+      {lightboxImage && createPortal(
         <div 
           className="lightbox-overlay" 
           onClick={() => setLightboxImage(null)}
@@ -706,7 +707,8 @@ export default function NewsDetail({ newsItem, setView, setCurrentNewsItem }) {
             className="lightbox-img animate-zoom-in"
             onClick={(e) => e.stopPropagation()}
           />
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
