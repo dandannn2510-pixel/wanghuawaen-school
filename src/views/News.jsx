@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { dbService } from '../services/db';
 import NewsCard from '../components/NewsCard';
 import { Search, AlertCircle } from 'lucide-react';
@@ -6,8 +6,18 @@ import { Search, AlertCircle } from 'lucide-react';
 export default function News({ setView, setCurrentNewsItem }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [newsList, setNewsList] = useState([]);
 
-  const newsList = dbService.getNews().filter(item => item.status === 'published');
+  useEffect(() => {
+    const loadNews = () => {
+      const news = dbService.getNews().filter(item => item.status === 'published');
+      setNewsList(news);
+    };
+
+    loadNews();
+    window.addEventListener('school_db_updated', loadNews);
+    return () => window.removeEventListener('school_db_updated', loadNews);
+  }, []);
 
   // Categories list
   const categories = [

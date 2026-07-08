@@ -4,10 +4,19 @@ import { dbService } from '../services/db';
 
 export default function NewsDetail({ newsItem, setView, setCurrentNewsItem }) {
   const [lightboxImage, setLightboxImage] = useState(null);
-  const allNews = dbService.getNews();
+  const [allNews, setAllNews] = useState([]);
+
+  useEffect(() => {
+    const loadNews = () => {
+      setAllNews(dbService.getNews());
+    };
+    loadNews();
+    window.addEventListener('school_db_updated', loadNews);
+    return () => window.removeEventListener('school_db_updated', loadNews);
+  }, []);
   
   // Filter out current news item for the sidebar suggestions
-  const relatedNews = allNews.filter(n => n.id !== newsItem.id).slice(0, 4);
+  const relatedNews = allNews.filter(n => n.id !== (newsItem ? newsItem.id : '')).slice(0, 4);
 
   const parseGalleryUrls = (galleryUrlsStr) => {
     if (!galleryUrlsStr) return [];

@@ -228,6 +228,7 @@ export const dbService = {
       }
       const data = await res.json();
       
+      let hasChanges = false;
       data.forEach(item => {
         if (item.key && item.value !== undefined) {
           let storageKey = '';
@@ -237,11 +238,22 @@ export const dbService = {
           else if (item.key === 'messages') storageKey = STORAGE_KEYS.MESSAGES;
 
           if (storageKey) {
-            localStorage.setItem(storageKey, JSON.stringify(item.value));
+            const oldValue = localStorage.getItem(storageKey);
+            const newValueStr = JSON.stringify(item.value);
+            if (oldValue !== newValueStr) {
+              localStorage.setItem(storageKey, newValueStr);
+              hasChanges = true;
+            }
           }
         }
       });
-      console.log('Database synced from cloud successfully.');
+
+      if (hasChanges) {
+        console.log('Database synced from cloud successfully with changes.');
+        window.dispatchEvent(new Event('school_db_updated'));
+      } else {
+        console.log('Database synced from cloud. No changes.');
+      }
       return true;
     } catch (e) {
       console.error('Failed to sync database from cloud:', e);

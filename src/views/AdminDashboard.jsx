@@ -437,9 +437,16 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
   // Feedback alert state
   const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
 
-  // Load news list, messages, and staff on mount
+  // Keep settings form in sync if schoolInfo changes in the background (cloud update)
+  useEffect(() => {
+    setSettingsFormData({ ...schoolInfo });
+  }, [schoolInfo]);
+
+  // Load news list, messages, and staff on mount, and listen to cloud database updates
   useEffect(() => {
     loadData();
+    window.addEventListener('school_db_updated', loadData);
+    return () => window.removeEventListener('school_db_updated', loadData);
   }, []);
 
   const loadData = () => {

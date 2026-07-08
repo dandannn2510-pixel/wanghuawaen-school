@@ -6,8 +6,14 @@ export default function Staff() {
   const [staffData, setStaffData] = useState({ director: {}, teachers: [] });
 
   useEffect(() => {
-    const data = dbService.getStaff();
-    setStaffData(data);
+    const loadStaff = () => {
+      const data = dbService.getStaff();
+      setStaffData(data);
+    };
+
+    loadStaff();
+    window.addEventListener('school_db_updated', loadStaff);
+    return () => window.removeEventListener('school_db_updated', loadStaff);
   }, []);
 
   const director = staffData.director;

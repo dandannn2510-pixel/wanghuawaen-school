@@ -75,6 +75,51 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Set up periodic cloud database polling and sync-on-focus
+  useEffect(() => {
+    const sync = async () => {
+      await dbService.syncFromCloud();
+    };
+
+    // Poll every 15 seconds
+    const interval = setInterval(sync, 15000);
+
+    // Sync when browser tab becomes active
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('App focused: Syncing cloud database...');
+        sync();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // Listen for database changes (from polling/visibility updates) to refresh local state
+  useEffect(() => {
+    const handleDbUpdate = () => {
+      console.log('Local DB changed. Refreshing App states...');
+      const info = dbService.getSchoolInfo();
+      setSchoolInfo(info);
+
+      // If viewing a news item, refresh it in case it was edited on another device
+      if (currentNewsItem) {
+        const updatedItem = dbService.getNewsById(currentNewsItem.id);
+        if (updatedItem) {
+          setCurrentNewsItem(updatedItem);
+        }
+      }
+    };
+
+    window.addEventListener('school_db_updated', handleDbUpdate);
+    return () => window.removeEventListener('school_db_updated', handleDbUpdate);
+  }, [currentNewsItem]);
+
   // Update design styles when school color setting changes
   useEffect(() => {
     if (schoolInfo && schoolInfo.colors) {

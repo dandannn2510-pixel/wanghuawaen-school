@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { dbService } from '../services/db';
 import NewsCard from '../components/NewsCard';
 import { BookOpen, Users, Compass, Award, ChevronRight } from 'lucide-react';
 
 export default function Home({ schoolInfo, setView, setCurrentNewsItem }) {
-  // Get top 3 latest published news
-  const latestNews = dbService.getNews().filter(item => item.status === 'published').slice(0, 3);
+  // Get top 3 latest published news as reactive state
+  const [latestNews, setLatestNews] = useState([]);
+
+  useEffect(() => {
+    const loadLatestNews = () => {
+      const news = dbService.getNews().filter(item => item.status === 'published').slice(0, 3);
+      setLatestNews(news);
+    };
+
+    loadLatestNews();
+    window.addEventListener('school_db_updated', loadLatestNews);
+    return () => window.removeEventListener('school_db_updated', loadLatestNews);
+  }, []);
 
   const handleNewsClick = (news) => {
     setCurrentNewsItem(news);
