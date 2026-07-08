@@ -686,7 +686,7 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
     }
   };
 
-  const getTeacherAvatar = (gender) => {
+  const getTeacherAvatar = (_gender) => {
     return (
       <svg viewBox="0 0 100 100" style={{ width: '40px', height: '40px', borderRadius: '4px' }}>
         <rect x="0" y="0" width="100" height="100" fill="#f1f5f9" />

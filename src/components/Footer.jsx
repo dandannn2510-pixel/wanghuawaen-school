@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Mail, MapPin, Globe, ExternalLink } from 'lucide-react';
+import { Phone, Mail, MapPin, ExternalLink } from 'lucide-react';
 
 export default function Footer({ schoolInfo, setView }) {
   const currentYear = new Date().getFullYear() + 543; // Thai Buddhist Calendar Year

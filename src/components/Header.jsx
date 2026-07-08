@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogIn, LogOut, Menu, X, ShieldAlert, Home, Newspaper, PhoneCall } from 'lucide-react';
+import { LogOut, Menu, X, ShieldAlert, Home, Newspaper, PhoneCall } from 'lucide-react';
 import { authService } from '../services/auth';
 
 export default function Header({ currentView, setView, user, setUser, schoolInfo }) {

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { MapPin, Info, ArrowRight, Layers, Sparkles } from 'lucide-react';
 
-export default function CampusMap({ setView }) {
+export default function CampusMap() {
   const [selectedBuilding, setSelectedBuilding] = useState('b1'); // default to Main Building b1
-  const [flagpoleClickCount, setFlagpoleClickCount] = useState(0);
 
   const buildingsInfo = {
     b1: {

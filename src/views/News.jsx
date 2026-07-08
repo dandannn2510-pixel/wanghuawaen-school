@@ -38,25 +38,7 @@ export default function News({ setView, setCurrentNewsItem }) {
     return matchesSearch && matchesCategory;
   });
 
-  const formatThaiDate = (dateStr) => {
-    if (!dateStr) return '';
-    const months = [
-      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-    ];
-    try {
-      const parts = dateStr.split('-');
-      if (parts.length === 3) {
-        const day = parseInt(parts[2]);
-        const monthIndex = parseInt(parts[1]) - 1;
-        const year = parseInt(parts[0]) + 543;
-        return `${day} ${months[monthIndex]} พ.ศ. ${year}`;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return dateStr;
-  };
+
 
   return (
     <div className="news-view container section-padding animate-fade-in">

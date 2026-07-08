@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Mail, GraduationCap, Award, Heart } from 'lucide-react';
+import { Mail, GraduationCap, Heart } from 'lucide-react';
 import { dbService } from '../services/db';
 
 export default function Staff() {
@@ -19,7 +19,7 @@ export default function Staff() {
   const director = staffData.director;
   const teachers = staffData.teachers;
 
-  const getTeacherAvatar = (gender) => {
+  const getTeacherAvatar = (_gender) => {
     // Elegant uniform portrait SVG outline
     return (
       <svg viewBox="0 0 100 100" className="staff-avatar-svg">

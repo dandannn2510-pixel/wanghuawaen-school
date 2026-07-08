@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, User, ArrowRight, BookOpen, Volume2, Award, Eye, Download, Pin } from 'lucide-react';
+import { Calendar, ArrowRight, BookOpen, Volume2, Award, Eye, Download, Pin } from 'lucide-react';
 
 export default function NewsCard({ item, onClick }) {
   const getCategoryBadge = (category) => {
