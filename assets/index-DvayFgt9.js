@@ -252,6 +252,36 @@ Error generating stack: `+e.message+`
             cursor: pointer;
           }
         }
+
+        /* Mobile specific header layout fixes to prevent wrapping and blocking issues */
+        @media (max-width: 768px) {
+          .header-top-bar {
+            display: none; /* Hide top bar on mobile to save vertical space */
+          }
+        }
+
+        @media (max-width: 600px) {
+          .logo-title {
+            font-size: 1.05rem; /* Shrink school title font to fit narrow screens */
+          }
+          .logo-subtitle {
+            font-size: 0.6rem;
+            letter-spacing: 0.2px;
+          }
+          .school-logo-crest {
+            width: 40px;
+            height: 40px; /* Make logo smaller on mobile */
+          }
+        }
+
+        @media (max-width: 400px) {
+          .logo-title {
+            font-size: 0.95rem; /* Prevent wrapping on extremely small phones */
+          }
+          .logo-subtitle {
+            display: none; /* Hide English subtitle on tiny viewports to keep logo clean */
+          }
+        }
       `})]})}function Ze({schoolInfo:e,setView:t}){let n=new Date().getFullYear()+543,r=e=>{t(e),window.scrollTo(0,0)};return(0,P.jsxs)(`footer`,{className:`school-footer`,children:[(0,P.jsx)(`div`,{className:`footer-top-accent`}),(0,P.jsx)(`div`,{className:`container footer-content section-padding`,children:(0,P.jsxs)(`div`,{className:`footer-grid`,children:[(0,P.jsxs)(`div`,{className:`footer-brand`,children:[(0,P.jsxs)(`div`,{className:`footer-logo-section`,children:[e&&e.logoUrl?(0,P.jsx)(`img`,{src:e.logoUrl,alt:`Logo`,className:`footer-crest-svg`,style:{objectFit:`contain`,width:`48px`,height:`48px`,borderRadius:`50%`,backgroundColor:`white`,padding:`2px`}}):(0,P.jsxs)(`svg`,{viewBox:`0 0 100 100`,className:`footer-crest-svg`,children:[(0,P.jsx)(`circle`,{cx:`50`,cy:`50`,r:`46`,fill:`white`,stroke:`var(--color-secondary)`,strokeWidth:`3`}),(0,P.jsx)(`path`,{d:`M 50 15 Q 80 40 50 85 Q 20 40 50 15`,fill:`none`,stroke:`var(--color-primary)`,strokeWidth:`2.5`}),(0,P.jsx)(`path`,{d:`M 32 45 L 50 25 L 68 45 L 50 65 Z`,fill:`var(--color-secondary)`}),(0,P.jsx)(`path`,{d:`M 40 50 Q 50 48 50 55 Q 50 48 60 50 M 40 52 L 40 57 Q 50 55 50 62 L 50 55 Q 50 55 50 62 Q 60 57 60 52 L 60 47`,fill:`none`,stroke:`var(--color-primary)`,strokeWidth:`2`}),(0,P.jsx)(`path`,{d:`M 46 22 L 50 10 L 54 22 Z`,fill:`var(--color-primary)`})]}),(0,P.jsxs)(`div`,{children:[(0,P.jsx)(`h3`,{className:`footer-school-name`,children:e.name}),(0,P.jsx)(`p`,{className:`footer-school-sub`,children:e.nameEn})]})]}),(0,P.jsxs)(`p`,{className:`school-motto-text`,children:[`“`,e.slogan,`”`]}),(0,P.jsx)(`p`,{className:`school-office-text`,children:e.region})]}),(0,P.jsxs)(`div`,{className:`footer-contact`,children:[(0,P.jsx)(`h4`,{className:`footer-heading`,children:`ติดต่อโรงเรียน`}),(0,P.jsxs)(`ul`,{className:`footer-contact-list`,children:[(0,P.jsxs)(`li`,{children:[(0,P.jsx)(we,{size:18,className:`footer-icon`}),(0,P.jsx)(`span`,{children:e.address})]}),(0,P.jsxs)(`li`,{children:[(0,P.jsx)(Oe,{size:18,className:`footer-icon`}),(0,P.jsx)(`a`,{href:`tel:${e.phone}`,children:e.phone})]}),(0,P.jsxs)(`li`,{children:[(0,P.jsx)(Ce,{size:18,className:`footer-icon`}),(0,P.jsx)(`a`,{href:`mailto:${e.email}`,children:e.email})]})]})]}),(0,P.jsxs)(`div`,{className:`footer-links`,children:[(0,P.jsx)(`h4`,{className:`footer-heading`,children:`แผนผังเว็บไซต์`}),(0,P.jsxs)(`ul`,{className:`footer-link-list`,children:[(0,P.jsx)(`li`,{children:(0,P.jsx)(`button`,{onClick:()=>r(`home`),children:`หน้าแรก`})}),(0,P.jsx)(`li`,{children:(0,P.jsx)(`button`,{onClick:()=>r(`news`),children:`ข่าวประกาศ`})}),(0,P.jsx)(`li`,{children:(0,P.jsx)(`button`,{onClick:()=>r(`staff`),children:`ทำเนียบบุคลากร`})}),(0,P.jsx)(`li`,{children:(0,P.jsx)(`button`,{onClick:()=>r(`campus`),children:`แผนผังโรงเรียน`})}),(0,P.jsx)(`li`,{children:(0,P.jsx)(`button`,{onClick:()=>r(`contact`),children:`ข้อมูลติดต่อ`})})]})]}),(0,P.jsxs)(`div`,{className:`footer-external`,children:[(0,P.jsx)(`h4`,{className:`footer-heading`,children:`ลิงก์หน่วยงานที่เกี่ยวข้อง`}),(0,P.jsxs)(`ul`,{className:`footer-link-list`,children:[(0,P.jsx)(`li`,{children:(0,P.jsxs)(`a`,{href:`https://www.obec.go.th`,target:`_blank`,rel:`noopener noreferrer`,className:`ext-link`,children:[`สพฐ. `,(0,P.jsx)(M,{size:12})]})}),(0,P.jsx)(`li`,{children:(0,P.jsxs)(`a`,{href:`https://kpt2.go.th`,target:`_blank`,rel:`noopener noreferrer`,className:`ext-link`,children:[`สพป.กำแพงเพชร เขต 2 `,(0,P.jsx)(M,{size:12})]})}),(0,P.jsx)(`li`,{children:(0,P.jsxs)(`a`,{href:`https://www.moe.go.th`,target:`_blank`,rel:`noopener noreferrer`,className:`ext-link`,children:[`กระทรวงศึกษาธิการ `,(0,P.jsx)(M,{size:12})]})})]})]})]})}),(0,P.jsx)(`div`,{className:`footer-bottom`,children:(0,P.jsxs)(`div`,{className:`container footer-bottom-content`,children:[(0,P.jsxs)(`p`,{children:[`© พ.ศ. `,n,` `,e.name,`. สงวนลิขสิทธิ์ข้อมูลตามพระราชบัญญัติลิขสิทธิ์`]}),(0,P.jsxs)(`div`,{className:`footer-credits-admin`,style:{display:`flex`,gap:`16px`,alignItems:`center`,flexWrap:`wrap`},children:[(0,P.jsx)(`p`,{children:`พัฒนาและบำรุงรักษาโดย กลุ่มเทคโนโลยีสารสนเทศเพื่อการศึกษา`}),(0,P.jsx)(`button`,{onClick:()=>r(`login`),className:`admin-login-footer-btn`,children:`สำหรับผู้ดูแลระบบ (Admin Login)`})]})]})}),(0,P.jsx)(`style`,{children:`
         .school-footer {
           background-color: #0b1a2e; /* Extremely deep dark navy blue */
@@ -729,6 +759,13 @@ Error generating stack: `+e.message+`
           .hero-title { font-size: 2.2rem; }
           .hero-slogan { font-size: 1.25rem; }
           .hero-banner { padding: 70px 0; }
+        }
+
+        @media (max-width: 480px) {
+          .hero-title { font-size: 1.65rem; }
+          .hero-slogan { font-size: 1.05rem; }
+          .hero-banner { padding: 55px 0; }
+          .hero-badge { font-size: 0.75rem; padding: 4px 12px; margin-bottom: 16px; }
         }
 
         /* Director visual */
@@ -2558,6 +2595,21 @@ CREATE POLICY "Allow anon delete" ON school_portal_data FOR DELETE USING (true);
         @media (max-width: 600px) {
           .admin-main-content {
             padding: 16px;
+          }
+          .admin-toast-alert {
+            top: 12px;
+            right: 12px;
+            left: 12px;
+            width: auto;
+            justify-content: center;
+          }
+          .modal-tabs-header {
+            flex-wrap: wrap;
+            gap: 4px;
+          }
+          .modal-tab-nav {
+            font-size: 0.85rem;
+            padding: 8px 12px;
           }
         }
 
