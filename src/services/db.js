@@ -20,7 +20,7 @@ const DEFAULT_SCHOOL_INFO = {
   address: "หมู่ที่ 6 ตำบลวังหามแห อำเภอขาณุวรลักษบุรี จังหวัดกำแพงเพชร 62140",
   phone: "0-5578-0246",
   email: "banwanghuawaen@g.obec.go.th", // standard OBEC school email format
-  googleMapsUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3839.2941913164923!2d99.82728987483669!3d15.823908846399125!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30e1c2e64627ef17%3A0xc3f58a36d934bb76!2z4LmC4Lih4LiH4LmA4Lij4Li14Lii4LiZ4Lia4LmJ4Liy4LiZ4Lin4Lix4LiH4Lir4Lix4Lin4LmB4Lir4LiZ4Lie4Lix4LiS4LiZ4Liy!5e0!3m2!1sth!2sth!4v1720370000000!5m2!1sth!2sth",
+  googleMapsUrl: "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d1916.872335714618!2d99.5433991!3d16.0787341!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30e0bd8766db67f5%3A0x1b4e6a8c47261182!2z4LmC4Lij4LiH4LmA4Lij4Li14Lii4LiZ4Lia4LmJ4Liy4LiZ4Lin4Lix4LiH4Lir4Lix4Lin4LmB4Lir4Lin4LiZ4Lie4Lix4LiS4LiZ4Liy!5e0!3m2!1sth!2sth!4v1783505957256!5m2!1sth!2sth",
   colors: {
     primary: "#0b2545", // Deep Royal Navy Blue
     secondary: "#e5b326" // Soft Premium Academic Gold/Yellow
