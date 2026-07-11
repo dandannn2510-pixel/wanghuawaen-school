@@ -179,8 +179,8 @@ initializeStorage();
 export const dbService = {
   // --- Supabase Cloud Sync Operations ---
   getSupabaseConfig() {
-    const envUrl = import.meta.env.VITE_SUPABASE_URL;
-    const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const envUrl = import.meta.env.VITE_SUPABASE_URL || 'https://rsukgfvutcagkpcfatfw.supabase.co';
+    const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzdWtnZnZ1dGNhZ2twY2ZhdGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzQwODEsImV4cCI6MjA5OTA1MDA4MX0.YoIDvfwtSM-jO32vbRvsmV7mRzNd3UEB0epIAeAxyZ0';
     if (envUrl && envKey) {
       return { url: envUrl, key: envKey, source: 'env' };
     }
