@@ -25,7 +25,7 @@ const DEFAULT_SCHOOL_INFO = {
     primary: "#0b2545", // Deep Royal Navy Blue
     secondary: "#e5b326" // Soft Premium Academic Gold/Yellow
   },
-  logoUrl: "",
+  logoUrl: "logo.jpg",
   heroBgUrl: "",
   stats: {
     teachers: 5,
@@ -312,8 +312,8 @@ export const dbService = {
           info.identity = info.identity || DEFAULT_SCHOOL_INFO.identity;
           needSave = true;
         }
-        if (info.logoUrl === undefined) {
-          info.logoUrl = "";
+        if (info.logoUrl === undefined || info.logoUrl === "") {
+          info.logoUrl = "logo.jpg";
           needSave = true;
         }
         if (info.heroBgUrl === undefined) {
