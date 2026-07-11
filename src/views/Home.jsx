@@ -6,16 +6,22 @@ import { BookOpen, Users, Compass, Award, ChevronRight } from 'lucide-react';
 export default function Home({ schoolInfo, setView, setCurrentNewsItem }) {
   // Get top 3 latest published news as reactive state
   const [latestNews, setLatestNews] = useState([]);
+  const [directorInfo, setDirectorInfo] = useState(null);
 
   useEffect(() => {
-    const loadLatestNews = () => {
+    const loadData = () => {
       const news = dbService.getNews().filter(item => item.status === 'published').slice(0, 3);
       setLatestNews(news);
+      
+      const staff = dbService.getStaff();
+      if (staff && staff.director) {
+        setDirectorInfo(staff.director);
+      }
     };
 
-    loadLatestNews();
-    window.addEventListener('school_db_updated', loadLatestNews);
-    return () => window.removeEventListener('school_db_updated', loadLatestNews);
+    loadData();
+    window.addEventListener('school_db_updated', loadData);
+    return () => window.removeEventListener('school_db_updated', loadData);
   }, []);
 
   const handleNewsClick = (news) => {
@@ -68,16 +74,23 @@ export default function Home({ schoolInfo, setView, setCurrentNewsItem }) {
                 {/* Formal frame decoration */}
                 <div className="frame-border-gold"></div>
                 <div className="director-avatar-placeholder">
-                  {/* Formal profile icon representing school director in uniform */}
-                  <svg viewBox="0 0 100 100" className="director-svg">
-                    <rect x="0" y="0" width="100" height="100" fill="#f3f4f6" />
-                    <circle cx="50" cy="38" r="18" fill="var(--color-primary)" opacity="0.85" />
-                    <path d="M 50 15 L 50 10 L 45 10 M 50 10 L 55 10" fill="none" stroke="var(--color-secondary)" strokeWidth="2" />
-                    <path d="M 22 82 C 22 60, 32 55, 50 55 C 68 55, 78 60, 78 82 Z" fill="var(--color-primary)" />
-                    {/* Golden epaulettes / medals representing Thai government officer uniform decoration */}
-                    <path d="M 26 62 Q 32 60 38 64 M 74 62 Q 68 60 62 64" fill="none" stroke="var(--color-secondary)" strokeWidth="3" />
-                    <rect x="47" y="55" width="6" height="12" fill="var(--color-secondary)" />
-                  </svg>
+                  {directorInfo && directorInfo.imageUrl ? (
+                    <img 
+                      src={directorInfo.imageUrl} 
+                      alt={schoolInfo.directorName} 
+                      className="director-svg" 
+                      style={{ objectFit: 'cover', width: '100%', height: '100%' }} 
+                    />
+                  ) : (
+                    <svg viewBox="0 0 100 100" className="director-svg">
+                      <rect x="0" y="0" width="100" height="100" fill="#f3f4f6" />
+                      <circle cx="50" cy="38" r="18" fill="var(--color-primary)" opacity="0.85" />
+                      <path d="M 50 15 L 50 10 L 45 10 M 50 10 L 55 10" fill="none" stroke="var(--color-secondary)" strokeWidth="2" />
+                      <path d="M 22 82 C 22 60, 32 55, 50 55 C 68 55, 78 60, 78 82 Z" fill="var(--color-primary)" />
+                      <path d="M 26 62 Q 32 60 38 64 M 74 62 Q 68 60 62 64" fill="none" stroke="var(--color-secondary)" strokeWidth="3" />
+                      <rect x="47" y="55" width="6" height="12" fill="var(--color-secondary)" />
+                    </svg>
+                  )}
                 </div>
               </div>
               <div className="director-info-card">

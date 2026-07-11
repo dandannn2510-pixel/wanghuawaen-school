@@ -17,17 +17,12 @@ export default function Footer({ schoolInfo, setView }) {
           {/* School Brand Column */}
           <div className="footer-brand">
             <div className="footer-logo-section">
-              {schoolInfo && schoolInfo.logoUrl ? (
-                <img src={schoolInfo.logoUrl} alt="Logo" className="footer-crest-svg" style={{ objectFit: 'contain', width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'white', padding: '2px' }} />
-              ) : (
-                <svg viewBox="0 0 100 100" className="footer-crest-svg">
-                  <circle cx="50" cy="50" r="46" fill="white" stroke="var(--color-secondary)" strokeWidth="3" />
-                  <path d="M 50 15 Q 80 40 50 85 Q 20 40 50 15" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" />
-                  <path d="M 32 45 L 50 25 L 68 45 L 50 65 Z" fill="var(--color-secondary)" />
-                  <path d="M 40 50 Q 50 48 50 55 Q 50 48 60 50 M 40 52 L 40 57 Q 50 55 50 62 L 50 55 Q 50 55 50 62 Q 60 57 60 52 L 60 47" fill="none" stroke="var(--color-primary)" strokeWidth="2" />
-                  <path d="M 46 22 L 50 10 L 54 22 Z" fill="var(--color-primary)" />
-                </svg>
-              )}
+              <img 
+                src={schoolInfo && schoolInfo.logoUrl ? schoolInfo.logoUrl : 'logo.jpg'} 
+                alt="Logo" 
+                className="footer-crest-svg" 
+                style={{ objectFit: 'contain', width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'white', padding: '2px' }} 
+              />
               <div>
                 <h3 className="footer-school-name">{schoolInfo.name}</h3>
                 <p className="footer-school-sub">{schoolInfo.nameEn}</p>

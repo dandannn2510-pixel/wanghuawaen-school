@@ -53,20 +53,12 @@ export default function Header({ currentView, setView, user, setUser, schoolInfo
             style={{ cursor: 'pointer' }}
           >
             <div className="school-logo-crest">
-              {schoolInfo && schoolInfo.logoUrl ? (
-                <img src={schoolInfo.logoUrl} alt="Logo" className="crest-svg" style={{ objectFit: 'contain', width: '100%', height: '100%', borderRadius: '50%' }} />
-              ) : (
-                /* Formal Emblem Crest SVG */
-                <svg viewBox="0 0 100 100" className="crest-svg">
-                  <circle cx="50" cy="50" r="46" fill="var(--color-primary)" stroke="var(--color-secondary)" strokeWidth="3" />
-                  <path d="M 50 15 Q 80 40 50 85 Q 20 40 50 15" fill="none" stroke="var(--color-secondary)" strokeWidth="2.5" />
-                  <path d="M 32 45 L 50 25 L 68 45 L 50 65 Z" fill="var(--color-secondary)" opacity="0.9" />
-                  {/* Book icon in center */}
-                  <path d="M 40 50 Q 50 48 50 55 Q 50 48 60 50 M 40 52 L 40 57 Q 50 55 50 62 L 50 55 Q 50 55 50 62 Q 60 57 60 52 L 60 47" fill="none" stroke="var(--color-primary)" strokeWidth="2" />
-                  {/* Crown/flame on top */}
-                  <path d="M 46 22 L 50 10 L 54 22 Z" fill="var(--color-secondary)" />
-                </svg>
-              )}
+              <img 
+                src={schoolInfo && schoolInfo.logoUrl ? schoolInfo.logoUrl : 'logo.jpg'} 
+                alt="Logo" 
+                className="crest-svg" 
+                style={{ objectFit: 'contain', width: '100%', height: '100%', borderRadius: '50%' }} 
+              />
             </div>
             <div className="school-name-text">
               <h1 className="logo-title">โรงเรียนบ้านวังหัวแหวนพัฒนา</h1>
