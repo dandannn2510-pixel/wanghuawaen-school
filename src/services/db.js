@@ -263,7 +263,7 @@ export const dbService = {
 
   async syncToCloud(storageKey, value) {
     const config = this.getSupabaseConfig();
-    if (!config) return;
+    if (!config) return { success: true, message: 'Local storage only' };
 
     let cloudKey = '';
     if (storageKey === STORAGE_KEYS.SCHOOL_INFO) cloudKey = 'school_info';
@@ -271,7 +271,7 @@ export const dbService = {
     else if (storageKey === STORAGE_KEYS.STAFF) cloudKey = 'staff';
     else if (storageKey === STORAGE_KEYS.MESSAGES) cloudKey = 'messages';
 
-    if (!cloudKey) return;
+    if (!cloudKey) return { success: true };
 
     try {
       const res = await fetch(`${config.url}/rest/v1/school_portal_data`, {
@@ -289,12 +289,44 @@ export const dbService = {
         })
       });
       if (!res.ok) {
-        console.error(`Supabase cloud sync failed for key ${cloudKey}:`, res.statusText);
+        let details = '';
+        try {
+          const jsonErr = await res.json();
+          details = jsonErr.message || jsonErr.error || JSON.stringify(jsonErr);
+        } catch (_) {
+          details = await res.text();
+        }
+
+        let errorMsg = `Supabase (HTTP ${res.status} ${res.statusText})`;
+        if (res.status === 503 || res.status === 502) {
+          errorMsg = `Supabase Paused/Offline (HTTP ${res.status}): ฐานข้อมูลคลาวด์ถูกสั่งหยุดพักเนื่องจากไม่มีความเคลื่อนไหว (กรุณากด Restore Project ที่ Supabase Dashboard)`;
+        } else if (res.status === 413) {
+          errorMsg = `Payload Too Large (HTTP 413): ข้อมูลและรูปภาพข่าวมีขนาดใหญ่เกินขีดจำกัดคลาวด์ กรุณาลดขนาดรูปภาพ`;
+        } else if (details) {
+          errorMsg += `: ${details.substring(0, 150)}`;
+        }
+
+        console.error(`Supabase cloud sync failed for key ${cloudKey}:`, errorMsg);
+        return { success: false, error: errorMsg };
       } else {
         console.log(`Supabase cloud sync success for key: ${cloudKey}`);
+        return { success: true };
       }
     } catch (e) {
+      const errorMsg = `ไม่สามารถติดต่อคลาวด์ได้ (${e.message || 'Network Failure'})`;
       console.error(`Supabase cloud sync connection error for key ${cloudKey}:`, e);
+      return { success: false, error: errorMsg };
+    }
+  },
+
+  safeSetItem(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+        throw new Error('หน่วยความจำเบราว์เซอร์เต็ม (LocalStorage Quota Exceeded) เนื่องจากไฟล์รูปภาพมีขนาดใหญ่เกินไป กรุณาลดขนาดหรือลบรูปภาพออกบางส่วน');
+      }
+      throw e;
     }
   },
 
@@ -326,7 +358,7 @@ export const dbService = {
         }
       }
       if (needSave) {
-        localStorage.setItem(STORAGE_KEYS.SCHOOL_INFO, JSON.stringify(info));
+        this.safeSetItem(STORAGE_KEYS.SCHOOL_INFO, info);
       }
       return info;
     } catch (e) {
@@ -335,11 +367,14 @@ export const dbService = {
     }
   },
 
-  updateSchoolInfo(info) {
+  async updateSchoolInfo(info) {
     initializeStorage();
-    localStorage.setItem(STORAGE_KEYS.SCHOOL_INFO, JSON.stringify(info));
+    this.safeSetItem(STORAGE_KEYS.SCHOOL_INFO, info);
     updateCSSVariables(info.colors);
-    this.syncToCloud(STORAGE_KEYS.SCHOOL_INFO, info);
+    const cloudRes = await this.syncToCloud(STORAGE_KEYS.SCHOOL_INFO, info);
+    if (cloudRes && !cloudRes.success) {
+      throw new Error(`บันทึกในเครื่องสำเร็จ แต่ส่งข้อมูลไปคลาวด์ไม่ผ่าน: ${cloudRes.error}`);
+    }
     return info;
   },
 
@@ -373,7 +408,7 @@ export const dbService = {
     return news.find(n => n.id === id);
   },
 
-  createNews(newsItem) {
+  async createNews(newsItem) {
     const news = JSON.parse(localStorage.getItem(STORAGE_KEYS.NEWS)) || [];
     const newItem = {
       views: 0,
@@ -387,38 +422,47 @@ export const dbService = {
       date: newsItem.date || new Date().toISOString().split('T')[0]
     };
     news.push(newItem);
-    localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(news));
-    this.syncToCloud(STORAGE_KEYS.NEWS, news);
+    this.safeSetItem(STORAGE_KEYS.NEWS, news);
+    const cloudRes = await this.syncToCloud(STORAGE_KEYS.NEWS, news);
+    if (cloudRes && !cloudRes.success) {
+      throw new Error(`บันทึกในเครื่องสำเร็จ แต่ส่งขึ้นคลาวด์ไม่ผ่าน: ${cloudRes.error}`);
+    }
     return newItem;
   },
 
-  updateNews(id, updatedItem) {
+  async updateNews(id, updatedItem) {
     const news = JSON.parse(localStorage.getItem(STORAGE_KEYS.NEWS)) || [];
     const index = news.findIndex(n => n.id === id);
     if (index !== -1) {
       news[index] = { ...news[index], ...updatedItem, id };
-      localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(news));
-      this.syncToCloud(STORAGE_KEYS.NEWS, news);
+      this.safeSetItem(STORAGE_KEYS.NEWS, news);
+      const cloudRes = await this.syncToCloud(STORAGE_KEYS.NEWS, news);
+      if (cloudRes && !cloudRes.success) {
+        throw new Error(`บันทึกในเครื่องสำเร็จ แต่ส่งขึ้นคลาวด์ไม่ผ่าน: ${cloudRes.error}`);
+      }
       return news[index];
     }
-    throw new Error(`News item with id ${id} not found.`);
+    throw new Error(`ไม่พบข่าวรหัส ${id} ในระบบ`);
   },
 
-  deleteNews(id) {
+  async deleteNews(id) {
     const news = JSON.parse(localStorage.getItem(STORAGE_KEYS.NEWS)) || [];
     const filteredNews = news.filter(n => n.id !== id);
-    localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(filteredNews));
-    this.syncToCloud(STORAGE_KEYS.NEWS, filteredNews);
+    this.safeSetItem(STORAGE_KEYS.NEWS, filteredNews);
+    const cloudRes = await this.syncToCloud(STORAGE_KEYS.NEWS, filteredNews);
+    if (cloudRes && !cloudRes.success) {
+      throw new Error(`ลบในเครื่องสำเร็จ แต่ส่งคำสั่งไปยังคลาวด์ไม่ผ่าน: ${cloudRes.error}`);
+    }
     return true;
   },
 
-  incrementNewsViews(id) {
+  async incrementNewsViews(id) {
     try {
       const news = JSON.parse(localStorage.getItem(STORAGE_KEYS.NEWS)) || [];
       const index = news.findIndex(n => n.id === id);
       if (index !== -1) {
         news[index].views = (news[index].views || 0) + 1;
-        localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(news));
+        this.safeSetItem(STORAGE_KEYS.NEWS, news);
         this.syncToCloud(STORAGE_KEYS.NEWS, news);
         return news[index];
       }
@@ -443,51 +487,66 @@ export const dbService = {
     }
   },
 
-  updateDirector(directorInfo) {
+  async updateDirector(directorInfo) {
     const staff = this.getStaff();
     staff.director = { ...staff.director, ...directorInfo };
-    localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
-    this.syncToCloud(STORAGE_KEYS.STAFF, staff);
+    this.safeSetItem(STORAGE_KEYS.STAFF, staff);
+    const cloudRes = await this.syncToCloud(STORAGE_KEYS.STAFF, staff);
+    if (cloudRes && !cloudRes.success) {
+      throw new Error(`บันทึกในเครื่องสำเร็จ แต่ส่งขึ้นคลาวด์ไม่ผ่าน: ${cloudRes.error}`);
+    }
     return staff.director;
   },
 
-  createTeacher(teacherInfo) {
+  async createTeacher(teacherInfo) {
     const staff = this.getStaff();
     const newTeacher = {
       ...teacherInfo,
       id: `teacher-${Date.now()}`
     };
     staff.teachers.push(newTeacher);
-    localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
-    this.syncToCloud(STORAGE_KEYS.STAFF, staff);
+    this.safeSetItem(STORAGE_KEYS.STAFF, staff);
+    const cloudRes = await this.syncToCloud(STORAGE_KEYS.STAFF, staff);
+    if (cloudRes && !cloudRes.success) {
+      throw new Error(`บันทึกในเครื่องสำเร็จ แต่ส่งขึ้นคลาวด์ไม่ผ่าน: ${cloudRes.error}`);
+    }
     return newTeacher;
   },
 
-  updateTeacher(id, updatedTeacherInfo) {
+  async updateTeacher(id, updatedTeacherInfo) {
     const staff = this.getStaff();
     const index = staff.teachers.findIndex(t => t.id === id);
     if (index !== -1) {
       staff.teachers[index] = { ...staff.teachers[index], ...updatedTeacherInfo, id };
-      localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
-      this.syncToCloud(STORAGE_KEYS.STAFF, staff);
+      this.safeSetItem(STORAGE_KEYS.STAFF, staff);
+      const cloudRes = await this.syncToCloud(STORAGE_KEYS.STAFF, staff);
+      if (cloudRes && !cloudRes.success) {
+        throw new Error(`บันทึกในเครื่องสำเร็จ แต่ส่งขึ้นคลาวด์ไม่ผ่าน: ${cloudRes.error}`);
+      }
       return staff.teachers[index];
     }
-    throw new Error(`Teacher with id ${id} not found.`);
+    throw new Error(`ไม่พบบุคลากรรหัส ${id} ในระบบ`);
   },
 
-  deleteTeacher(id) {
+  async deleteTeacher(id) {
     const staff = this.getStaff();
     staff.teachers = staff.teachers.filter(t => t.id !== id);
-    localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
-    this.syncToCloud(STORAGE_KEYS.STAFF, staff);
+    this.safeSetItem(STORAGE_KEYS.STAFF, staff);
+    const cloudRes = await this.syncToCloud(STORAGE_KEYS.STAFF, staff);
+    if (cloudRes && !cloudRes.success) {
+      throw new Error(`ลบในเครื่องสำเร็จ แต่ส่งคำสั่งไปยังคลาวด์ไม่ผ่าน: ${cloudRes.error}`);
+    }
     return true;
   },
 
-  saveTeachersOrder(teachersList) {
+  async saveTeachersOrder(teachersList) {
     const staff = this.getStaff();
     staff.teachers = teachersList;
-    localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
-    this.syncToCloud(STORAGE_KEYS.STAFF, staff);
+    this.safeSetItem(STORAGE_KEYS.STAFF, staff);
+    const cloudRes = await this.syncToCloud(STORAGE_KEYS.STAFF, staff);
+    if (cloudRes && !cloudRes.success) {
+      throw new Error(`ปรับลำดับในเครื่องสำเร็จ แต่ส่งข้อมูลไปคลาวด์ไม่ผ่าน: ${cloudRes.error}`);
+    }
     return true;
   },
 
@@ -501,7 +560,7 @@ export const dbService = {
     }
   },
 
-  saveMessage(message) {
+  async saveMessage(message) {
     const existingMsgs = this.getMessages();
     const newMsg = {
       ...message,
@@ -509,14 +568,14 @@ export const dbService = {
       date: new Date().toISOString()
     };
     existingMsgs.push(newMsg);
-    localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(existingMsgs));
+    this.safeSetItem(STORAGE_KEYS.MESSAGES, existingMsgs);
     this.syncToCloud(STORAGE_KEYS.MESSAGES, existingMsgs);
     return newMsg;
   },
 
-  clearMessages() {
-    localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify([]));
-    this.syncToCloud(STORAGE_KEYS.MESSAGES, []);
+  async clearMessages() {
+    this.safeSetItem(STORAGE_KEYS.MESSAGES, []);
+    await this.syncToCloud(STORAGE_KEYS.MESSAGES, []);
   }
 };
 

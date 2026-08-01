@@ -462,13 +462,14 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
 
   const showAlert = (message, type = 'success') => {
     setAlert({ show: true, message, type });
+    const duration = type === 'danger' ? 8000 : 4000;
     setTimeout(() => {
       setAlert({ show: false, message: '', type: 'success' });
-    }, 4000);
+    }, duration);
   };
 
   // Site Settings saving
-  const handleSettingsSubmit = (e) => {
+  const handleSettingsSubmit = async (e) => {
     e.preventDefault();
     try {
       const cleanedData = {
@@ -479,13 +480,13 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
           students: parseInt(settingsFormData.stats?.students) || 0
         }
       };
-      const updated = dbService.updateSchoolInfo(cleanedData);
+      const updated = await dbService.updateSchoolInfo(cleanedData);
       setSchoolInfo(updated);
       setSettingsFormData(updated);
       showAlert('บันทึกการตั้งค่าเว็บไซต์สำเร็จ ข้อมูลสถิติและวิสัยทัศน์อัปเดตแล้ว', 'success');
     } catch (err) {
-      console.error(err);
-      showAlert('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'danger');
+      console.error("Error saving settings:", err);
+      showAlert(`เกิดข้อผิดพลาด: ${err.message}`, 'danger');
     }
   };
 
@@ -533,36 +534,36 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
   };
 
   // Submit News creation/update form
-  const handleNewsSubmit = (e) => {
+  const handleNewsSubmit = async (e) => {
     e.preventDefault();
     try {
       if (currentNewsItem) {
         // Edit mode
-        dbService.updateNews(currentNewsItem.id, newsFormData);
+        await dbService.updateNews(currentNewsItem.id, newsFormData);
         showAlert('แก้ไขข้อมูลข่าวประกาศเรียบร้อยแล้ว', 'success');
       } else {
         // Create mode
-        dbService.createNews(newsFormData);
+        await dbService.createNews(newsFormData);
         showAlert('เพิ่มข่าวประกาศใหม่เข้าสู่ระบบเรียบร้อยแล้ว', 'success');
       }
       setIsNewsModalOpen(false);
       loadData();
     } catch (err) {
-      console.error(err);
-      showAlert('เกิดข้อผิดพลาดในการดำเนินงาน', 'danger');
+      console.error("Error submitting news:", err);
+      showAlert(`เกิดข้อผิดพลาด: ${err.message}`, 'danger');
     }
   };
 
   // Confirm delete news item
-  const handleDeleteNews = (id) => {
+  const handleDeleteNews = async (id) => {
     try {
-      dbService.deleteNews(id);
+      await dbService.deleteNews(id);
       showAlert('ลบข่าวประกาศเรียบร้อยแล้ว', 'warning');
       setDeleteConfirmId(null);
       loadData();
     } catch (err) {
-      console.error(err);
-      showAlert('เกิดข้อผิดพลาดในการลบข้อมูล', 'danger');
+      console.error("Error deleting news:", err);
+      showAlert(`เกิดข้อผิดพลาด: ${err.message}`, 'danger');
     }
   };
 
@@ -597,84 +598,94 @@ export default function AdminDashboard({ schoolInfo, setSchoolInfo, handleLogout
   };
 
   // Submit Staff creation/update form
-  const handleStaffSubmit = (e) => {
+  const handleStaffSubmit = async (e) => {
     e.preventDefault();
     try {
       if (currentTeacherItem) {
         // Edit mode
-        dbService.updateTeacher(currentTeacherItem.id, teacherFormData);
+        await dbService.updateTeacher(currentTeacherItem.id, teacherFormData);
         showAlert('แก้ไขข้อมูลอาจารย์ผู้สอนสำเร็จแล้ว', 'success');
       } else {
         // Create mode
-        dbService.createTeacher(teacherFormData);
+        await dbService.createTeacher(teacherFormData);
         showAlert('เพิ่มคุณครูท่านใหม่เข้าทำเนียบบุคลากรแล้ว', 'success');
       }
       setIsStaffModalOpen(false);
       loadData();
     } catch (err) {
-      console.error(err);
-      showAlert('เกิดข้อผิดพลาดในการจัดการข้อมูลบุคลากร', 'danger');
+      console.error("Error submitting staff:", err);
+      showAlert(`เกิดข้อผิดพลาด: ${err.message}`, 'danger');
     }
   };
 
   // Confirm delete teacher
-  const handleDeleteTeacher = (id) => {
+  const handleDeleteTeacher = async (id) => {
     try {
-      dbService.deleteTeacher(id);
+      await dbService.deleteTeacher(id);
       showAlert('ลบข้อมูลบุคลากรเรียบร้อยแล้ว', 'warning');
       setTeacherDeleteConfirmId(null);
       loadData();
     } catch (err) {
-      console.error(err);
-      showAlert('เกิดข้อผิดพลาดในการลบข้อมูลบุคลากร', 'danger');
+      console.error("Error deleting teacher:", err);
+      showAlert(`เกิดข้อผิดพลาด: ${err.message}`, 'danger');
     }
   };
 
   // Move teacher order Up/Down
-  const moveTeacher = (index, direction) => {
-    const updatedTeachers = [...staffData.teachers];
-    if (direction === 'up' && index > 0) {
-      const temp = updatedTeachers[index];
-      updatedTeachers[index] = updatedTeachers[index - 1];
-      updatedTeachers[index - 1] = temp;
-    } else if (direction === 'down' && index < updatedTeachers.length - 1) {
-      const temp = updatedTeachers[index];
-      updatedTeachers[index] = updatedTeachers[index + 1];
-      updatedTeachers[index + 1] = temp;
+  const moveTeacher = async (index, direction) => {
+    try {
+      const updatedTeachers = [...staffData.teachers];
+      if (direction === 'up' && index > 0) {
+        const temp = updatedTeachers[index];
+        updatedTeachers[index] = updatedTeachers[index - 1];
+        updatedTeachers[index - 1] = temp;
+      } else if (direction === 'down' && index < updatedTeachers.length - 1) {
+        const temp = updatedTeachers[index];
+        updatedTeachers[index] = updatedTeachers[index + 1];
+        updatedTeachers[index + 1] = temp;
+      }
+      await dbService.saveTeachersOrder(updatedTeachers);
+      loadData();
+      showAlert('ปรับเปลี่ยนลำดับการแสดงผลบุคลากรแล้ว', 'success');
+    } catch (err) {
+      console.error("Error reordering teachers:", err);
+      showAlert(`เกิดข้อผิดพลาด: ${err.message}`, 'danger');
     }
-    dbService.saveTeachersOrder(updatedTeachers);
-    loadData();
-    showAlert('ปรับเปลี่ยนลำดับการแสดงผลบุคลากรแล้ว', 'success');
   };
 
   // Update Director
-  const handleDirectorSubmit = (e) => {
+  const handleDirectorSubmit = async (e) => {
     e.preventDefault();
     try {
-      dbService.updateDirector(directorFormData);
+      await dbService.updateDirector(directorFormData);
       // Synchronize back directorName in schoolInfo if needed (directorMsg is dynamically handled in Settings tab)
       const updatedSchoolInfo = {
         ...settingsFormData,
         directorName: directorFormData.name,
         directorPosition: directorFormData.position
       };
-      const saved = dbService.updateSchoolInfo(updatedSchoolInfo);
+      const saved = await dbService.updateSchoolInfo(updatedSchoolInfo);
       setSchoolInfo(saved);
       setSettingsFormData(saved);
       
       showAlert('อัปเดตข้อมูลผู้บริหารสถานศึกษาสำเร็จ', 'success');
       loadData();
     } catch (err) {
-      console.error(err);
-      showAlert('เกิดข้อผิดพลาดในการแก้ไขข้อมูลผู้อำนวยการ', 'danger');
+      console.error("Error updating director:", err);
+      showAlert(`เกิดข้อผิดพลาด: ${err.message}`, 'danger');
     }
   };
 
   // Clear contact messages list
-  const handleClearMessages = () => {
-    dbService.clearMessages();
-    setMessages([]);
-    showAlert('ล้างประวัติการข้อความติดต่อทั้งหมดเรียบร้อยแล้ว', 'warning');
+  const handleClearMessages = async () => {
+    try {
+      await dbService.clearMessages();
+      setMessages([]);
+      showAlert('ล้างประวัติการข้อความติดต่อทั้งหมดเรียบร้อยแล้ว', 'warning');
+    } catch (err) {
+      console.error("Error clearing messages:", err);
+      showAlert(`เกิดข้อผิดพลาด: ${err.message}`, 'danger');
+    }
   };
 
   const getCategoryText = (category) => {
