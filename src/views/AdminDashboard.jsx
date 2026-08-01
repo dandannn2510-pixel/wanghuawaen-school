@@ -22,7 +22,7 @@ const ImageUploadWidget = ({ label, value, onChange }) => {
         img.onload = () => {
           let width = img.width;
           let height = img.height;
-          const maxDim = 1600; // Limit max resolution to 1600px for high quality
+          const maxDim = 1000; // Limit max resolution to 1000px for optimal storage and web speed
 
           if (width > maxDim || height > maxDim) {
             if (width > height) {
@@ -40,8 +40,8 @@ const ImageUploadWidget = ({ label, value, onChange }) => {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Compress to JPEG with 0.85 quality for clearer display
-          const compressed = canvas.toDataURL('image/jpeg', 0.85);
+          // Compress to JPEG with 0.75 quality for fast loading and small payload
+          const compressed = canvas.toDataURL('image/jpeg', 0.75);
           onChange(compressed);
         };
       };
@@ -69,7 +69,7 @@ const ImageUploadWidget = ({ label, value, onChange }) => {
             <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', marginBottom: '8px', fontSize: '1.5rem', fontWeight: 'bold' }}>
               +
             </span>
-            <span className="upload-text">คลิกเพื่ออัปโหลดรูปภาพโดยตรง (ไม่เกิน 2MB)</span>
+            <span className="upload-text">คลิกเพื่ออัปโหลดรูปภาพโดยตรง (ระบบปรับขนาดให้อัตโนมัติ)</span>
             <input 
               type="file" 
               accept="image/*" 
@@ -117,7 +117,7 @@ const MultipleImageUploadWidget = ({ label, value, onChange }) => {
         img.onload = () => {
           let width = img.width;
           let height = img.height;
-          const maxDim = 1200; // Limit gallery items max resolution to 1200px for clearer display
+          const maxDim = 800; // Limit gallery items max resolution to 800px for crystal clear display and small payload
 
           if (width > maxDim || height > maxDim) {
             if (width > height) {
@@ -135,8 +135,8 @@ const MultipleImageUploadWidget = ({ label, value, onChange }) => {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Compress to JPEG with 0.8 quality for clearer gallery storage size
-          const compressed = canvas.toDataURL('image/jpeg', 0.8);
+          // Compress gallery images with 0.65 quality for lightweight storage
+          const compressed = canvas.toDataURL('image/jpeg', 0.65);
           loadedImages.push(compressed);
           loadedCount++;
           
