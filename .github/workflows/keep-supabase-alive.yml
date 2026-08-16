@@ -2,17 +2,36 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # สะกิด Supabase ทุกๆ 3 วัน เวลา 07:00 น. (เวลาไทย)
-    - cron: '0 0 */3 * *'
+    # สะกิด Supabase ทุกวัน เวลา 01:00 น. (เวลาไทย) ป้องกัน GitHub Cron Delay/Skip
+    - cron: '0 18 * * *'
   workflow_dispatch: # เปิดให้กดรันแบบ manual จากหน้า GitHub ได้
 
 jobs:
   ping-supabase:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase REST API
+      - name: Ping Supabase REST API & Auth Service
         run: |
-          curl -s -X GET "https://rsukgfvutcagkpcfatfw.supabase.co/rest/v1/school_portal_data?select=*&limit=1" \
+          echo "Pinging Supabase REST API..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET "https://rsukgfvutcagkpcfatfw.supabase.co/rest/v1/school_portal_data?select=*&limit=1" \
             -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzdWtnZnZ1dGNhZ2twY2ZhdGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzQwODEsImV4cCI6MjA5OTA1MDA4MX0.YoIDvfwtSM-jO32vbRvsmV7mRzNd3UEB0epIAeAxyZ0" \
-            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzdWtnZnZ1dGNhZ2twY2ZhdGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzQwODEsImV4cCI6MjA5OTA1MDA4MX0.YoIDvfwtSM-jO32vbRvsmV7mRzNd3UEB0epIAeAxyZ0"
+            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzdWtnZnZ1dGNhZ2twY2ZhdGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzQwODEsImV4cCI6MjA5OTA1MDA4MX0.YoIDvfwtSM-jO32vbRvsmV7mRzNd3UEB0epIAeAxyZ0")
+          
+          echo "REST API HTTP Status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Error: REST API did not return 200 OK!"
+            exit 1
+          fi
+
+          echo "Pinging Supabase Auth Health..."
+          AUTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET "https://rsukgfvutcagkpcfatfw.supabase.co/auth/v1/health" \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzdWtnZnZ1dGNhZ2twY2ZhdGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzQwODEsImV4cCI6MjA5OTA1MDA4MX0.YoIDvfwtSM-jO32vbRvsmV7mRzNd3UEB0epIAeAxyZ0")
+
+          echo "Auth Service HTTP Status: $AUTH_STATUS"
+          if [ "$AUTH_STATUS" -ne 200 ]; then
+            echo "Error: Auth Service did not return 200 OK!"
+            exit 1
+          fi
+
           echo "Supabase successfully pinged!"
+
